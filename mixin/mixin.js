@@ -1,0 +1,1 @@
+ThinMint.Mixin = {};
