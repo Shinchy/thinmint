@@ -101,6 +101,8 @@ The Router.config mode property can be set to 'history' in order to use HTML5 hi
 ```javascript
 jQuery(function() {
 
+// mode: 'hash' => onhashchange
+// mode: 'history' => html5 pushstate
 Router.config({ mode: 'hash' }); 
 //Router.navigate();
 
@@ -177,6 +179,33 @@ ThinMint.Page.Panel.on(ThinMint.Event.PAGE_INDEX, function(event) {
     $layout.show();
   }); 
 });
+```
+
+Want to fetch a Drupal Node as well?
+
+```javascript
+  // Get the necessary data for the page.
+  var rpcQueue = new ThinMint.RpcQueue();
+  rpcQueue.add(
+    ThinMint.RequestMethod.get('User')
+  ).add(
+    ThinMint.RequestMethod.get('Loyalty.User')
+  );  
+
+  // Fetch the Drupal nodes.
+  var requestQueue = new ThinMint.RequestQueue();
+  requestQueue.add(
+    rpcQueue
+  ).add(
+    ThinMint.RequestMethod.get('Drupal.FAQ')
+  );  
+
+  requestQueue.run(function() {
+    requestQueue = null;
+    rpcQueue = null;
+
+    $layout.show();
+  });
 ```
 
 ## JSON-RPC Queue
