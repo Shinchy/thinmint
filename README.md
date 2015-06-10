@@ -59,6 +59,8 @@ Panels are independent of one another and can exist on one or many pages.  Each 
 </section>
 ```
 
+### Appears more than once
+
 If necessary, a Panel can exist on the same page more than once.  Use the [class] and [data-id] attributes on the main element:
 
 ```html
@@ -209,12 +211,22 @@ Want to fetch a Drupal Node as well?
 ```
 
 ## JSON-RPC Queue
-Located in js/shared/site/thinmint/lib/request.js, this file has the definitions for a Base Request class, Request Manager via RequestMethod, and a Request Queue via RequestQueue.  The Model definitions currently live in js/shared/site/thinmint/model/*.js  MORE INFORMATION
+** Needs to be updated **
+Located in js/shared/site/thinmint/lib/request.js, this file has the definitions for a Base Request class, Request Manager via RequestMethod, and a Request Queue via RequestQueue.  The Model definitions currently live in js/shared/site/thinmint/model/*.js
 
+### Add an RPC request to the request manager
 ```javascript
-RequestMethod.add('Loyalty.User', new Request({
+ThinMint.RequestMethod.add('Loyalty.User', new ThinMint.RpcRequest({
   eventName: ThinMint.Event.RPC_LOYALTY_USER,
   method: 'loyalty.user.get'
+}));
+```
+
+### Add a Drupal request to fetch a Drupal node
+```javascript
+ThinMint.RequestMethod.add('Drupal.FAQ', new ThinMint.DrupalRequest({
+  eventName: ThinMint.Event.DRUPAL_FAQ,
+  node: ThinMint.DRUPAL.FAQ
 }));
 ```
 
