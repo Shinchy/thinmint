@@ -283,3 +283,89 @@ ThinMint.Mixin.LoyaltyUser = function() {
   return this;
 };
 ```
+
+## Panel Example (Transaction History)
+
+```javascript
+ThinMint.Panel.Transactions = function($el, options) {
+  // Call parent constructor.
+  ThinMint.Panel.apply(this, arguments);
+  ThinMint.Mixin.User.call(this);
+  ThinMint.Mixin.LoyaltyUser.call(this);
+  ThinMint.Mixin.Paginate.call(this);
+
+  console.info('ThinMint.Panel.Transactions', 'Constructor called.', arguments);
+
+  this.template = '/account/loyalty/panel/transactions';
+  this.templateData = {}; 
+  this.transactionDateFormat = 'mm/dd/yy';
+
+  this.getDom();
+  this.bindDomEvents();
+
+  ThinMint.Page.Panel.on(ThinMint.Event.RPC_LOYALTY_TRANSACTION, jQuery.proxy( this.setTransactions, this ) );
+};
+ThinMint.Panel.Transactions.prototype = Object.create(ThinMint.Panel.prototype);//new ThinMint.Panel();
+ThinMint.Panel.Transactions.prototype.parent = ThinMint.Panel.prototype;
+
+ThinMint.Panel.Transactions.prototype.getDom = function() {
+  // Define DOM pointers.
+
+  this.dom.$pageNext = jQuery('.loyalty__panel__transactions__list__paginate__page-next', this.el);
+  this.dom.$pagePrevious = jQuery('.loyalty__panel__transactions__list__paginate__page-previous', this.el);
+};
+
+ThinMint.Panel.Transactions.prototype.bindDomEvents = function() {
+  // Bind Events.
+
+  this.dom.$pageNext.on('click', jQuery.proxy( this.pageNext, this ) );
+  this.dom.$pagePrevious.on('click', jQuery.proxy( this.pagePrevious, this ) );
+};
+
+// Force clean-up when instance has been removed from the page.
+ThinMint.Panel.Transactions.prototype._destruct = function() {
+};
+
+ThinMint.Panel.Transactions.prototype.init = function() {
+  // Call parent init method.
+  this.parent.init.apply(this, arguments);
+
+  console.info('ThinMint.Panel.Transactions.init', 'Init called.', arguments);
+};
+
+ThinMint.Panel.Transactions.prototype.onPage = function() {
+  console.log( this.getPage() );
+};
+
+ThinMint.Panel.Transactions.prototype.setTransactions = function(event, err, data, response) {
+  var that = this;
+  if(err) {
+    console.error('ThinMint.Panel.Transactions', 'Problem with the transactions response', err);
+    return;
+  }
+
+  var transactions = [];
+  jQuery.each(data.loyalty_transactions, function(index, transaction) {
+    if('transaction' === transaction.type) {
+      transaction.loyalty_points_spent = false;
+      transaction.loyalty_points_earned = false;
+      transaction.date_pretty = dateFormat(transaction.date, that.transactionDateFormat);
+
+      if('Purchase' === transaction.transaction_type) {
+        // Points have been spent.
+        transaction.loyalty_points_spent = true;
+      } else {
+        // Points have been earned.
+        transaction.loyalty_points_earned = true;
+      }
+    }
+
+    transactions.push(transaction);
+  });
+
+  this.templateData.transactions = transactions;
+
+  // Render the Transaction panel.
+  this.render();
+};
+```
