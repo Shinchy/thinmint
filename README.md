@@ -2,7 +2,7 @@
 
 * [Views / Templates](#views-templates)
 * [Layout](#views-templates)
-* [Panel](#views-templates)
+* [Panel](#panel)
 * [Routes](#routes)
 * [Controlers](#controllers)
 * [Models](#request-models)
@@ -99,6 +99,23 @@ For panels that have both `[class]` and `[data-id]` attributes and are missing t
 ```
 
 ### Base Panel
+
+The Panel constructor accepts two arguments, `(jQuery) $el` and `(object) options`
+
+#### Properties
+
+* `$el` jQuery DOM element pointer passed into the constructor.
+* `options` Object containing options that pertain to the panel.
+* `dom` Object that contains pointers to the DOM nodes that interest this panel.
+* `template` String that points to the mustache template location for this panel.
+* `templateData` Object that contains all of the data that is necessary to render the panel.
+
+#### Methods
+
+* `getDom` Use this method to fetch and store your DOM nodes for this panel.
+* `bindDomEvents` Contains definition for event binding for DOM nodes.  Need to capture click, submit, focus or other events?  This is the method where those event binds should live.
+* `render` Contains instructions on how to render this panel.  The base panel does everything from fetching the `template`, passing `templateData` into the rendering engine, calling `postRender`, `getDom`, and finally `bindDomEvents` in that order.
+* `postRender` This method allows you to manipulate the DOM for the panel prior to calling `getDom` and `bindDomEvents`.
 
 ### Panel Mixins
 These allow you to have functionality in one place that applies to many panels for code reusability and ease-of-maintenance.  Writing a mixin is fairly straightforward, just be sure to include any references to parent/super methods if overriding and call those parent methods when necessary.
