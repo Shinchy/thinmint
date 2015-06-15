@@ -1,7 +1,15 @@
 # ThinMint
 
+* [Views / Templates](#views-templates)
+* [Layout](#views-templates)
+* [Panel](#views-templates)
+* [Routes](#routes)
+* [Controlers](#controllers)
+* [Models](#request-models)
+
+<a name="views-templates"></a>
 ## Views / Templates
-Views are broken up into two pieces: Layouts and Panels
+Views are broken up into two pieces: **Layouts** and **Panels**
 
 In the Loyalty project, these templates respectively live in the following directories:
 
@@ -9,7 +17,7 @@ In the Loyalty project, these templates respectively live in the following direc
 /tmpl/any/account/loyalty/layout/
 /tmpl/any/account/loyalty/panel/
 ```
-
+<a name="layout"></a>
 ## Layout
 Layout pages contain mustache includes for each of the individual panels for that page.  Each Layout is also tied to its own Controller that is responsible for getting the Layout, instantiating the panels on that page, and calling the appropriate Models in order to get the necessary data to the Panels.
 
@@ -25,6 +33,7 @@ This is an example of an index.mustache Layout for the Loyalty project:
 </div>
 ```
 
+<a name="panel"></a>
 ## Panel
 Panels are independent of one another and can exist on one or many pages.  Each page may be comprised of multiple panels.  If a panel will only ever exist once on page, then an [id] attribute should be used on the main element.  
 
@@ -61,7 +70,7 @@ Panels are independent of one another and can exist on one or many pages.  Each 
 
 ### Appears more than once
 
-If necessary, a Panel can exist on the same page more than once.  Use the [class] and [data-id] attributes on the main element:
+If necessary, a Panel can exist on the same page more than once.  Use the `[class]` and `[data-id]` attributes on the main element:
 
 ```html
 <section class="loyalty__panel__join" data-id="loyalty__panel__join">
@@ -69,7 +78,7 @@ If necessary, a Panel can exist on the same page more than once.  Use the [class
 </section>
 ```
 
-For panels that have both [class] and [data-id] attributes and are missing the [id] attribute, the Panel base class will automatically assign a zero-based index [id] attribute to each of the Panels in the order in which they display.  For example, if our Layout includes two of the "loyalty_panel_join" elements, this is how the [id] attributes will be assigned:
+For panels that have both `[class]` and `[data-id]` attributes and are missing the `[id]` attribute, the Panel base class will automatically assign a zero-based index `[id]` attribute to each of the Panels in the order in which they display.  For example, if our Layout includes two of the `loyalty_panel_join` elements, this is how the `[id]` attributes will be assigned:
 
 ```html
 <section class="loyalty__panel__join" data-id="loyalty__panel__join" id="loyalty__panel__join--0">
@@ -89,158 +98,16 @@ For panels that have both [class] and [data-id] attributes and are missing the [
 </section>
 ```
 
-## Routes
-Our Routes are loaded when the DOM is ready.  Routes are defined using regular expressions in javascript.  You can match variables that may exist in the path and have them passed via the event that is triggered.  In the example below, the following routes will trigger the History Page event:
+### Base Panel
 
-```
-/history
-/history/page/2
-/history/page/50
-```
-
-The Router.config mode property can be set to 'history' in order to use HTML5 history.pushstate. In order to use this mode, you will have to notify the sysadmins to create a rewrite rule to point all routes to the main page that is served by Perl.
-
-```javascript
-jQuery(function() {
-
-// mode: 'hash' => onhashchange
-// mode: 'history' => html5 pushstate
-Router.config({ mode: 'hash' }); 
-//Router.navigate();
-
-// HISTORY --
-Router.add(/^history(?:\/page\/(\d+?))?$/, function() {
-
-  ThinMint.Page.Panel.trigger(ThinMint.Event.PAGE_HISTORY, arguments);
-
-// REWARDS --
-}).add(/^rewards$/, function() {
-
-  ThinMint.Page.Panel.trigger(ThinMint.Event.PAGE_REWARDS, arguments);
-
-// POINTS --
-}).add(/^points$/, function() {
-
-  ThinMint.Page.Panel.trigger(ThinMint.Event.PAGE_POINTS, arguments);
-
-// ABOUT --
-}).add(/^about$/, function() {
-
-  ThinMint.Page.Panel.trigger(ThinMint.Event.PAGE_ABOUT, arguments);
-
-// FAQ --
-}).add(/^faq$/, function() {
-
-  ThinMint.Page.Panel.trigger(ThinMint.Event.PAGE_FAQ, arguments);
-
-// INDEX (HOME) --
-}).add(function() {
-
-  ThinMint.Page.Panel.trigger(ThinMint.Event.PAGE_INDEX, arguments);
-
-}).check().listen();
-
-}); // jQuery dom:ready
-```
-
-## Controllers
-Controllers listen for a Page event to happen.  These events are triggered by the Router.  They are responsible for fetching and rendering the layout to the page, instantiating the Panels that exist on that page, and getting the data required by those panels.  Once all of those tasks are finished, the Layout can then be shown to the user.
-
-```javascript
-ThinMint.Page.Panel.on(ThinMint.Event.PAGE_INDEX, function(event) {
-  var $layout = ThinMint.Page.getContainer().hide();
-
-  // Render the index layout.
-  var template = ThinMint.Util.Mustache.getTemplate('/account/loyalty/layout/index');
-  var output = ThinMint.Util.Mustache.render(template);
-  $layout.html(output);
-
-  // Instantiate the Panels.
-  new ThinMint.Panel.Offers( jQuery('#loyalty__panel__offers') );
-  new ThinMint.Panel.Benefits( jQuery('#loyalty__panel__benefits') );
-  new ThinMint.Panel.HowToEarn( jQuery('#loyalty__panel__how-to-earn') );
-  new ThinMint.Panel.Points( jQuery('#loyalty__panel__points') );
-
-  // Support for adding more than one of the same panel:
-  jQuery('.loyalty__panel__join').each(function() {
-    new ThinMint.Panel.Join( jQuery(this) );
-  });
-
-  // Get the necessary data for the page.
-  var rpcQueue = new RequestQueue();
-  rpcQueue.add(
-    RequestMethod.get('User')
-  ).add(
-    RequestMethod.get('Loyalty.User')
-  ).add(
-    RequestMethod.get('Offers.Query')
-  );  
-
-  rpcQueue.run(function() {
-    rpcQueue = null;
-    $layout.show();
-  }); 
-});
-```
-
-Want to fetch a Drupal Node as well?
-
-```javascript
-  // Get the necessary data for the page.
-  var rpcQueue = new ThinMint.RpcQueue();
-  rpcQueue.add(
-    ThinMint.RequestMethod.get('User')
-  ).add(
-    ThinMint.RequestMethod.get('Loyalty.User')
-  );  
-
-  // Fetch the Drupal nodes.
-  var requestQueue = new ThinMint.RequestQueue();
-  requestQueue.add(
-    rpcQueue
-  ).add(
-    ThinMint.RequestMethod.get('Drupal.FAQ')
-  );  
-
-  requestQueue.run(function() {
-    requestQueue = null;
-    rpcQueue = null;
-
-    $layout.show();
-  });
-```
-
-## JSON-RPC Queue
-** Needs to be updated **
-Located in js/shared/site/thinmint/lib/request.js, this file has the definitions for a Base Request class, Request Manager via RequestMethod, and a Request Queue via RequestQueue.  The Model definitions currently live in js/shared/site/thinmint/model/*.js
-
-### Add an RPC request to the request manager
-```javascript
-ThinMint.RequestMethod.add('Loyalty.User', new ThinMint.RpcRequest({
-  eventName: ThinMint.Event.RPC_LOYALTY_USER,
-  method: 'loyalty.user.get'
-}));
-```
-
-### Add a Drupal request to fetch a Drupal node
-```javascript
-ThinMint.RequestMethod.add('Drupal.FAQ', new ThinMint.DrupalRequest({
-  eventName: ThinMint.Event.DRUPAL_FAQ,
-  node: ThinMint.DRUPAL.FAQ
-}));
-```
-
-## Base Panel
-
-
-## Panel Mixins
+### Panel Mixins
 These allow you to have functionality in one place that applies to many panels for code reusability and ease-of-maintenance.  Writing a mixin is fairly straightforward, just be sure to include any references to parent/super methods if overriding and call those parent methods when necessary.
 
-Below is an example of a LoyaltyUser mixin.  It provides functionality to Panels that are interested in knowing whether or not the current user is a member of the loyalty program.  It defines a listener within the constructor that is interested in the RPC_LOYALTY_USER event.  When this event happens, it calls the setLoyaltyAccount method.  That method properly adds the loyalty account information to the templateData object that is part of all Panel classes.  Our mixin now has the loyalty account data and would like to render the view.
+Below is an example of a `LoyaltyUser` mixin.  It provides functionality to Panels that are interested in knowing whether or not the current user is a member of the loyalty program.  It defines a listener within the constructor that is interested in the `RPC_LOYALTY_USER` event.  When this event happens, it calls the `setLoyaltyAccount` method.  That method properly adds the loyalty account information to the `templateData` property object that is part of all Panel classes.  Our mixin now has the loyalty account data and would like to render the view.
 
-Within our render method in the LoyaltyUser mixin, we add a check to make sure loyalty account data is available before spending resources to render the view.  It then calls the parent render method and while continuing up the chain, each render method implementation can demand that certain data is present before continuing.  This prevents us from rendering the panel without having all of the necessary data.
+Within our render method in the `LoyaltyUser` mixin, we add a check to make sure loyalty account data is available before spending resources to render the view.  It then calls the parent render method and while continuing up the chain, each render method implementation can demand that certain data is present before continuing.  This prevents us from rendering the panel without having all of the necessary data.
 
-The postRender method in this mixin checks if this particular user is part of the loyalty program.  If they are, then it adds an 'is-member' class to the parent element, else nothing happens.
+The postRender method in this mixin checks if this particular user is part of the loyalty program.  If they are, then it adds an `is-member` class to the parent element, else nothing happens.
 
 ```javascript
 ThinMint.Mixin.LoyaltyUser = function() {
@@ -284,7 +151,7 @@ ThinMint.Mixin.LoyaltyUser = function() {
 };
 ```
 
-## Panel Example (Transaction History)
+### Panel Example (Transaction History)
 
 ```javascript
 ThinMint.Panel.Transactions = function($el, options) {
@@ -368,4 +235,148 @@ ThinMint.Panel.Transactions.prototype.setTransactions = function(event, err, dat
   // Render the Transaction panel.
   this.render();
 };
+```
+
+<a name="routes"></a>
+## Routes
+Our Routes are loaded when the DOM is ready.  Routes are defined using regular expressions in javascript.  You can match variables that may exist in the path and have them passed via the event that is triggered.  In the example below, the following routes will trigger the History Page event:
+
+```
+/history
+/history/page/2
+/history/page/50
+```
+
+The Router.config mode property can be set to `history` in order to use HTML5 history.pushstate. In order to use this mode, you will have to notify the sysadmins to create a rewrite rule to point all routes to the main page that is served by Perl.
+
+```javascript
+jQuery(function() {
+
+// mode: 'hash' => onhashchange
+// mode: 'history' => html5 pushstate
+Router.config({ mode: 'hash' }); 
+//Router.navigate();
+
+// HISTORY --
+Router.add(/^history(?:\/page\/(\d+?))?$/, function() {
+
+  ThinMint.Page.Panel.trigger(ThinMint.Event.PAGE_HISTORY, arguments);
+
+// REWARDS --
+}).add(/^rewards$/, function() {
+
+  ThinMint.Page.Panel.trigger(ThinMint.Event.PAGE_REWARDS, arguments);
+
+// POINTS --
+}).add(/^points$/, function() {
+
+  ThinMint.Page.Panel.trigger(ThinMint.Event.PAGE_POINTS, arguments);
+
+// ABOUT --
+}).add(/^about$/, function() {
+
+  ThinMint.Page.Panel.trigger(ThinMint.Event.PAGE_ABOUT, arguments);
+
+// FAQ --
+}).add(/^faq$/, function() {
+
+  ThinMint.Page.Panel.trigger(ThinMint.Event.PAGE_FAQ, arguments);
+
+// INDEX (HOME) --
+}).add(function() {
+
+  ThinMint.Page.Panel.trigger(ThinMint.Event.PAGE_INDEX, arguments);
+
+}).check().listen();
+
+}); // jQuery dom:ready
+```
+
+<a name="controllers"></a>
+## Controllers
+Controllers listen for a Page event to happen.  These events are triggered by the Router.  They are responsible for fetching and rendering the layout to the page, instantiating the Panels that exist on that page, and getting the data required by those panels.  Once all of those tasks are finished, the Layout can then be shown to the user.
+
+```javascript
+ThinMint.Page.Panel.on(ThinMint.Event.PAGE_INDEX, function(event) {
+  var $layout = ThinMint.Page.getContainer().hide();
+
+  // Render the index layout.
+  var template = ThinMint.Util.Mustache.getTemplate('/account/loyalty/layout/index');
+  var output = ThinMint.Util.Mustache.render(template);
+  $layout.html(output);
+
+  // Instantiate the Panels.
+  new ThinMint.Panel.Offers( jQuery('#loyalty__panel__offers') );
+  new ThinMint.Panel.Benefits( jQuery('#loyalty__panel__benefits') );
+  new ThinMint.Panel.HowToEarn( jQuery('#loyalty__panel__how-to-earn') );
+  new ThinMint.Panel.Points( jQuery('#loyalty__panel__points') );
+
+  // Support for adding more than one of the same panel:
+  jQuery('.loyalty__panel__join').each(function() {
+    new ThinMint.Panel.Join( jQuery(this) );
+  });
+
+  // Get the necessary data for the page.
+  var rpcQueue = new RequestQueue();
+  rpcQueue.add(
+    RequestMethod.get('User')
+  ).add(
+    RequestMethod.get('Loyalty.User')
+  ).add(
+    RequestMethod.get('Offers.Query')
+  );  
+
+  rpcQueue.run(function() {
+    rpcQueue = null;
+    $layout.show();
+  }); 
+});
+```
+
+### Want to fetch a Drupal Node as well?
+
+```javascript
+  // Get the necessary data for the page.
+  var rpcQueue = new ThinMint.RpcQueue();
+  rpcQueue.add(
+    ThinMint.RequestMethod.get('User')
+  ).add(
+    ThinMint.RequestMethod.get('Loyalty.User')
+  );  
+
+  // Fetch the Drupal nodes.
+  var requestQueue = new ThinMint.RequestQueue();
+  requestQueue.add(
+    rpcQueue
+  ).add(
+    ThinMint.RequestMethod.get('Drupal.FAQ')
+  );  
+
+  requestQueue.run(function() {
+    requestQueue = null;
+    rpcQueue = null;
+
+    $layout.show();
+  });
+```
+
+<a name="request-models"></a>
+## JSON-RPC Queue
+** Needs to be updated **
+Located in `thinmint/lib/request.js`, this file has the definitions for a Base Request class, Request Manager via RequestMethod, and a Request Queue via RequestQueue.  The Model definitions currently live in `thinmint/model/*.js`
+
+### Add an RPC request to the request manager
+```javascript
+ThinMint.RequestMethod.add('Loyalty.User', new ThinMint.RpcRequest({
+  eventName: ThinMint.Event.RPC_LOYALTY_USER,
+  method: 'loyalty.user.get'
+}));
+```
+
+### Add a Drupal request to fetch a Drupal node
+```javascript
+ThinMint.RequestMethod.add('Drupal.FAQ', new ThinMint.DrupalRequest({
+  eventName: ThinMint.Event.DRUPAL_FAQ,
+  node: ThinMint.DRUPAL.FAQ
+}));
 ```
