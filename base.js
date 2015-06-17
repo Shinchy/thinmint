@@ -9,6 +9,21 @@ jQuery.isElement = function(e) {
   }
 };
 
+jQuery.fn.serializeObject = function() {
+  var obj = {};
+
+  jQuery.each(this.serializeArray(), function(i, o) {
+  var n = o.name,
+    v = o.value;
+
+  obj[n] = obj[n] === undefined ? v
+    : jQuery.isArray( obj[n] ) ? obj[n].concat( v )
+    : [ obj[n], v ];
+  });
+
+  return obj;
+};
+
 // ---
 
 var ThinMint = {};
