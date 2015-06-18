@@ -30,6 +30,7 @@ var ThinMint = {};
 ThinMint.Event = {
   RPC_USER: 'user.rpc.loyalty',
   RPC_LOYALTY_USER: 'loyalty_user.rpc.loyalty',
+  RPC_LOYALTY_JOIN: 'loyalty_join.rpc.loyalty',
   RPC_LOYALTY_TRANSACTION: 'loyalty_transaction.rpc.loyalty',
   RPC_OFFERS_QUERY: 'offers_query.rpc.loyalty'
 };
