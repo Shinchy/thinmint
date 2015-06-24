@@ -33,10 +33,11 @@ ThinMint.Mixin.LoyaltyUser = function() {
     _super.postRender.apply(this, arguments);
 
     // Attach account or guest data to this panel.
-    if( jQuery.isPlainObject(this.templateData.loyalty_account) ) {
+    try {
       if( this.templateData.loyalty_account.user.is_loyalty_member ) {
         this.$el.addClass('is-member');
       }
+    } catch(e) {
     }
   };
 

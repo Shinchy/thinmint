@@ -144,6 +144,19 @@ ThinMint.Page.Panel = (function() {
   };
 
   /**
+   * Part of the event emitter. Use this to listen for a new event.
+   */
+  that.one = function() {
+    if( typeof arguments[0] !== 'string'
+    &&  jQuery.isPlainObject(arguments[0]) === false ) {
+      console.error('ThinMint.Page.Panel.on', 'Event Name must be a string.', arguments);
+      return;
+    }
+
+    messageBus.one.apply(messageBus, arguments);
+  };
+
+  /**
    * Part of the event emitter. Use this to stop listening for new events.
    */
   that.off = function() {

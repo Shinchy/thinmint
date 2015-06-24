@@ -3,6 +3,6 @@ ThinMint.RequestMethod.add('Offers.Query', new ThinMint.RpcRequest({
   method: 'offers.query',
   params: [{
     format_for: 'mustache',
-    view: 'cart_user_visible'
+    view: 'loyalty_myaccount'//'cart_user_visible'
   }]
 }));
