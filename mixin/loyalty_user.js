@@ -7,12 +7,6 @@ ThinMint.Mixin.LoyaltyUser = function() {
   this.setLoyaltyAccount = function(event, err, data, response) {
     this.templateData.loyalty_account = data;
 
-    // XXX: Fake loyalty data.
-    try {
-      this.templateData.loyalty_account.user.is_loyalty_member = 1;
-    } catch(e) {
-    }
-
     this.render();
   };
 

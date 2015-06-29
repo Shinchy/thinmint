@@ -6,8 +6,6 @@ ThinMint.Mixin.User = function() {
 
   this.setAccount = function(event, err, data, response) {
     this.templateData.account = data;
-    // XXX: Fake account sign-in.
-    this.templateData.account.signed_in = true;
     this.render();
   };
 
