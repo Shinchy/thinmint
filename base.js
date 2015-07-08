@@ -53,15 +53,6 @@ ThinMint.Util.Mustache.getTemplate = function(path) {
     return template;
   }
 
-  console.error('ThinMint.Util.Mustache.getTemplate', 'Mustache template missing: ', path);
-
-  try {
-    if(generic.cookie('magic_mustache_unroll') == 1) {
-      console.error('If experiencing issues, please disable mustache unroll: /shared/debug_magic_js.tmpl?magic_mustache_unroll=0');
-    }
-  } catch(e) {
-  }
-
   // Check to see if the path is an RB key in language.
   var rbSets = ['language', 'error_messages'];
   var i = 0;
@@ -74,24 +65,41 @@ ThinMint.Util.Mustache.getTemplate = function(path) {
     }
 
     // Check if the path starts with 'rb.bundle_name.'
-    if(path.indexOf('rb.' + _bundle + '.') === 0) {
+    if( path.indexOf('rb.' + _bundle + '.') === 0 ) {
       var languageKey = path.substr( 4 + _bundle.length );
 
       // Verify that the key exists and is a string.
-      if(typeof rb[_bundle][languageKey] === 'string') {
-        return rb[_bundle][languageKey];
+      if( typeof _language[ languageKey ] === 'string' ) {
+        return _language[ languageKey ];
       }
     }
+  }
+
+  console.error('ThinMint.Util.Mustache.getTemplate', 'Mustache template missing: ', path);
+
+  try {
+    if(generic.cookie('magic_mustache_unroll') == 1) {
+      console.error('If experiencing issues, please disable mustache unroll: /shared/debug_magic_js.tmpl?magic_mustache_unroll=0');
+    }
+  } catch(e) {
   }
 
   return path;
 };
 
 ThinMint.Util.Mustache.render = function(template, data) {
+  var response;
   data = jQuery.isPlainObject(data) ? data : {};
   data.rb = rb;
 
-  return Mustache.render(template, data, ThinMint.Util.Mustache.getTemplate);
+  try {
+    response = Mustache.render(template, data, ThinMint.Util.Mustache.getTemplate);
+  } catch(e) {
+    console.error(template, data, e);
+    response = template + '\n' + e.toString();
+  }
+
+  return response;
 };
 
 // ---
