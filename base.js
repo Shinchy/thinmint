@@ -31,6 +31,7 @@ ThinMint.Event = {
   RPC_USER: 'user.rpc.loyalty',
   RPC_LOYALTY_USER: 'loyalty_user.rpc.loyalty',
   RPC_LOYALTY_JOIN: 'loyalty_join.rpc.loyalty',
+  RPC_LOYALTY_QUIT: 'loyalty_quit.rpc.loyalty',
   RPC_LOYALTY_TRANSACTION: 'loyalty_transaction.rpc.loyalty',
   RPC_OFFERS_QUERY: 'offers_query.rpc.loyalty'
 };
@@ -41,25 +42,49 @@ ThinMint.Util.callback = function(callback) {
 };
 ThinMint.Util.Mustache = {};
 ThinMint.Util.Mustache.getTemplate = function(path) {
-  if (!path || typeof path === 'object') {
+  if ( ! path || typeof path === 'object' ) {
     return null;
   };
 
   var templateKey = path.replace(/\//g, '___');
   var template = mustache[templateKey];
 
-  if (template) {
+  if(template) {
     return template;
-  } else {
-    console.error('ThinMint.Util.Mustache.getTemplate', 'Mustache template missing: ', path);
-    try {
-      if(generic.cookie('magic_mustache_unroll') == 1) {
-        console.error('If experiencing issues, please disable mustache unroll: /shared/debug_magic_js.tmpl?magic_mustache_unroll=0');
-      }
-    } catch(e) {
-    }
-    return '';
   }
+
+  console.error('ThinMint.Util.Mustache.getTemplate', 'Mustache template missing: ', path);
+
+  try {
+    if(generic.cookie('magic_mustache_unroll') == 1) {
+      console.error('If experiencing issues, please disable mustache unroll: /shared/debug_magic_js.tmpl?magic_mustache_unroll=0');
+    }
+  } catch(e) {
+  }
+
+  // Check to see if the path is an RB key in language.
+  var rbSets = ['language', 'error_messages'];
+  var i = 0;
+  var rbSetsLength = rbSets.length;
+  for(; i < rbSetsLength; i++) {
+    var _bundle = rbSets[i];
+    var _language = rb[ _bundle ];
+    if( jQuery.isPlainObject( _language ) === false) {
+      continue;
+    }
+
+    // Check if the path starts with 'rb.bundle_name.'
+    if(path.indexOf('rb.' + _bundle + '.') === 0) {
+      var languageKey = path.substr( 4 + _bundle.length );
+
+      // Verify that the key exists and is a string.
+      if(typeof rb[_bundle][languageKey] === 'string') {
+        return rb[_bundle][languageKey];
+      }
+    }
+  }
+
+  return path;
 };
 
 ThinMint.Util.Mustache.render = function(template, data) {
