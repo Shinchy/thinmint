@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ThinMint Unit Tests</title>
+  <link rel="stylesheet" href="//code.jquery.com/qunit/qunit-1.18.0.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+
+  <script src="//code.jquery.com/jquery-1.8.2.js"></script>
+  <script src="//code.jquery.com/qunit/qunit-1.18.0.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/mustache.js/2.1.2/mustache.min.js"></script>
+
+  <script src="../base.js"></script>
+
+  <!-- libraries -->
+  <script src="../lib/router.js"></script>
+  <script src="../lib/queue.js"></script>
+  <script src="../lib/storage.js"></script>
+  <script src="../lib/request.js"></script>
+  <script src="../lib/rpc_request.js"></script>
+  <script src="../lib/drupal_request.js"></script>
+
+  <!-- mixins -->
+  <script src="/js/shared/site/thinmint/mixin/mixin.js"></script>
+  <script src="/js/shared/site/thinmint/mixin/user.js"></script>
+  <script src="/js/shared/site/thinmint/mixin/loyalty_user.js"></script>
+  <script src="/js/shared/site/thinmint/mixin/paginate.js"></script>
+  <script src="/js/pc/site/account/loyalty/mixin/has_pending_points.js"></script>
+
+  <!-- models -->
+  <script src="/js/shared/site/thinmint/model/user.js"></script>
+  <script src="/js/shared/site/thinmint/model/loyalty_user.js"></script>
+  <script src="/js/shared/site/thinmint/model/loyalty_transaction.js"></script>
+  <script src="/js/shared/site/thinmint/model/offers_query.js"></script>
+  <script src="/js/shared/site/thinmint/model/form_checkoutshipping.js"></script>
+
+  <!-- panels -->
+  <script src="/js/shared/site/thinmint/panel/panel.js"></script>
+  <script src="/js/shared/site/thinmint/panel/example.js"></script>
+
+  <!-- tests -->
+  <script src="./spec/storage.js"></script>
+  <script src="./spec/queue.js"></script>
+  <script src="./spec/request.js"></script>
+  <script src="./spec/panel.js"></script>
+</body>
+</html>
