@@ -1,3 +1,5 @@
+// ThinMint v0.0.1
+
 var mustache = mustache || {};
 var rb = rb || {};
 
