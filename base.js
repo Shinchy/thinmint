@@ -1,3 +1,5 @@
+// ThinMint v0.0.1
+
 var mustache = mustache || {};
 var rb = rb || {};
 
@@ -106,6 +108,7 @@ ThinMint.Util.Mustache.render = function(template, data) {
 
 ThinMint.Page = {};
 ThinMint.Page.getContainer = function() {
+  // XXX: This needs to be moved.
   return jQuery('#loyalty__content');
 };
 ThinMint.Page.Panel = (function() {
