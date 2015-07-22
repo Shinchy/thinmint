@@ -106,6 +106,7 @@ ThinMint.Util.Mustache.render = function(template, data) {
 
 ThinMint.Page = {};
 ThinMint.Page.getContainer = function() {
+  // XXX: This needs to be moved.
   return jQuery('#loyalty__content');
 };
 ThinMint.Page.Panel = (function() {
