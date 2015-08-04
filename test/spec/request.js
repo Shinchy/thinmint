@@ -1,12 +1,11 @@
 QUnit.module('ThinMint.Request');
 
 QUnit.test( 'RpcQueue, RpcRequest, DrupalRequest and RequestQueue', function( assert ) {
-  assert.expect(5);
+  assert.expect(4);
   var done1 = assert.async();
   var done2 = assert.async();
   var done3 = assert.async();
   var done4 = assert.async();
-  var done5 = assert.async();
 
   ThinMint.Event.DRUPAL_FETCH = 'somerandomevent';
   ThinMint.RequestMethod.add('Drupal.Fetch', new ThinMint.DrupalRequest({
@@ -20,8 +19,6 @@ QUnit.test( 'RpcQueue, RpcRequest, DrupalRequest and RequestQueue', function( as
     ThinMint.RequestMethod.get('User')
   ).add(
     ThinMint.RequestMethod.get('Loyalty.User')
-  ).add(
-    ThinMint.RequestMethod.get('Offers.Query')
   );
 
   // Fetch the Drupal nodes.
@@ -45,14 +42,10 @@ QUnit.test( 'RpcQueue, RpcRequest, DrupalRequest and RequestQueue', function( as
     assert.ok( ( err == null && jQuery.isPlainObject(data) ), 'is the rpc loyalty user event captured');
     done3();
   });
-  ThinMint.Page.Panel.on(ThinMint.Event.RPC_OFFERS_QUERY, function(event, err, data) {
-    assert.ok( ( err == null && jQuery.isPlainObject(data) ), 'is the rpc offers query event captured');
-    done4();
-  });
 
   requestQueue.run(function() {
     rpcQueue = null;
     assert.ok(true, 'request queue is finished');
-    done5();
+    done4();
   });
 });

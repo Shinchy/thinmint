@@ -1,4 +1,8 @@
-// ThinMint v0.0.1
+/**
+ * @license
+ * ThinMint 0.0.2 <https://github.com/cloudily/thinmint>
+ * Available under MIT license <https://raw.githubusercontent.com/cloudily/thinmint/master/LICENSE>
+ */
 
 var mustache = mustache || {};
 var rb = rb || {};
@@ -29,6 +33,7 @@ jQuery.fn.serializeObject = function() {
 // ---
 
 var ThinMint = {};
+ThinMint.VERSION = '0.0.2';
 ThinMint.Event = {
   RPC_USER: 'user.rpc.loyalty',
   RPC_LOYALTY_USER: 'loyalty_user.rpc.loyalty',

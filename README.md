@@ -1,4 +1,4 @@
-# ThinMint v0.0.1
+# ThinMint v0.0.2
 
 * [Views / Templates](#views-templates)
 * [Layout](#views-templates)
@@ -35,7 +35,7 @@ This is an example of an index.mustache Layout for the Loyalty project:
 
 <a name="panel"></a>
 ## Panel
-Panels are independent of one another and can exist on one or many pages.  Each page may be comprised of multiple panels.  If a panel will only ever exist once on page, then an [id] attribute should be used on the main element.  
+Panels are independent of one another and can exist on one or many pages.  Each page may be comprised of multiple panels.  If a panel will only ever exist once on page, then an [id] attribute should be used on the main element.
 
 ```html
 <section id="loyalty__panel__points">
@@ -189,7 +189,7 @@ ThinMint.Panel.Transactions = function($el, options) {
 
   ThinMint.Page.Panel.on(ThinMint.Event.RPC_LOYALTY_TRANSACTION, jQuery.proxy( this.setTransactions, this ) );
 };
-ThinMint.Panel.Transactions.prototype = Object.create(ThinMint.Panel.prototype);//new ThinMint.Panel();
+ThinMint.Panel.Transactions.prototype = Object.create(ThinMint.Panel.prototype);
 ThinMint.Panel.Transactions.prototype.parent = ThinMint.Panel.prototype;
 
 ThinMint.Panel.Transactions.prototype.getDom = function() {
@@ -253,6 +253,34 @@ ThinMint.Panel.Transactions.prototype.setTransactions = function(event, err, dat
   this.render();
 };
 ```
+
+### How to Extend Transaction History
+
+```javascript
+ThinMint.Panel.TransactionsChild = function($el, options) {
+  // Call parent constructor.
+  ThinMint.Panel.Transactions.apply(this, arguments);
+
+  console.info('ThinMint.Panel.TransactionsChild', 'Constructor called.', arguments);
+
+  this.transactionDateFormat = 'dddd, mmmm d, yyyy';
+};
+ThinMint.Panel.TransactionsChild.prototype = Object.create(ThinMint.Panel.Transactions.prototype);
+
+ThinMint.Panel.TransactionsChild.prototype.init = function() {
+  // Call parent init method.
+  ThinMint.Panel.Transactions.prototype.init.apply(this, arguments);
+
+  console.info('ThinMint.Panel.TransactionsChild.init', 'Init called.', arguments);
+};
+
+ThinMint.Panel.TransactionsChild.prototype.setTransactions = function(event, err, data, response) {
+  // Alternate handling of the transaction data.
+  this.templateData.transactions = data.loyalty_transactions;
+
+  // Render the Transaction panel.
+  this.render();
+};
 
 <a name="routes"></a>
 ## Routes

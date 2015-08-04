@@ -28,7 +28,8 @@ ThinMint.Mixin.LoyaltyUser = function() {
 
     // Attach account or guest data to this panel.
     try {
-      if( this.templateData.loyalty_account.user.is_loyalty_member ) {
+      if( this.templateData.loyalty_account.user_state.signed_in
+       && this.templateData.loyalty_account.user.is_loyalty_member ) {
         this.$el.addClass('is-member');
       }
     } catch(e) {
