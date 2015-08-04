@@ -55,9 +55,24 @@ QUnit.test( 'create new panel, event trigger/capture, rendering with mustache', 
     }
 
     this.parent.render.apply(this, arguments);
+    //ThinMint.Panel.prototype.render.apply(this, arguments);
   };
 
-  new ThinMint.Panel.Test( jQuery('#panel__test') );
+  //
+
+  ThinMint.Panel.TestChild = function($el, options) {
+    ThinMint.Panel.Test.apply(this, arguments);
+  };
+  ThinMint.Panel.TestChild.prototype = Object.create(ThinMint.Panel.Test.prototype);
+
+  ThinMint.Panel.TestChild.prototype.setDateTime = function(event, err, data, response) {
+    assert.ok( this.parent === ThinMint.Panel.prototype, 'is ThinMint.Panel.TestChild.parent equal to ThinMint.Panel.prototype');
+    ThinMint.Panel.Test.prototype.setDateTime.apply(this, arguments);
+  };
+
+  //
+
+  new ThinMint.Panel.TestChild( jQuery('#panel__test') );
 
   var allPanels = ThinMint.Page.Panel.all();
   assert.notStrictEqual(
@@ -86,6 +101,6 @@ QUnit.test( 'create new panel, event trigger/capture, rendering with mustache', 
     'is allPanels.panel__test.templateData.datetime an instance of date'
   );
 
-  $panelTest.remove();
+  allPanels.panel__test.$el.remove();
   done();
 });
