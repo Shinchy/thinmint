@@ -281,6 +281,7 @@ ThinMint.Panel.TransactionsChild.prototype.setTransactions = function(event, err
   // Render the Transaction panel.
   this.render();
 };
+```
 
 <a name="routes"></a>
 ## Routes
