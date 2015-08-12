@@ -433,39 +433,43 @@ ThinMint.RequestMethod.add('Drupal.FAQ', new ThinMint.DrupalRequest({
 # Libraries
 
 thinmint/base.js
-*your_app_constants.js*
 thinmint/panel.js
 thinmint/lib/queue.js
 thinmint/lib/router.js
 thinmint/lib/request.js
 thinmint/lib/rpc_request.js
 thinmint/lib/drupal_request.js
-*your_app_libs.js*
 
 # Mixins
 
 thinmint/mixin.js
-thinmint/mixin/user.js
-thinmint/mixin/loyalty_user.js
-thinmint/mixin/paginate.js
-thinmint/mixin/has_pending_points.js
-*your_app_mixins.js*
 
 # Models
 
-thinmint/model/user.js
-thinmint/model/loyalty_user.js
-thinmint/model/loyalty_transaction.js
-thinmint/model/offers_query.js
-thinmint/model/form_checkoutshipping.js
-*your_app_models.js*
+// thinmint/model/example.js
 
 # Panels
 
-//thinmint_panel_example.js
+// thinmint_panel_example.js
+
+# Your Libraries
+
+*your_app_constants.js*
+*your_app_libs.js*
+
+# Your Mixins
+
+*your_app_mixins.js*
+
+# Your Models
+
+*your_app_models.js*
+
+# Your Panels
+
 *your_app_panels.js*
 
-# Controllers
+# Your Controllers
 
 *your_app_controllers.js*
 
