@@ -35,12 +35,7 @@ jQuery.fn.serializeObject = function() {
 var ThinMint = {};
 ThinMint.VERSION = '0.0.2';
 ThinMint.Event = {
-  RPC_USER: 'user.rpc.loyalty',
-  RPC_LOYALTY_USER: 'loyalty_user.rpc.loyalty',
-  RPC_LOYALTY_JOIN: 'loyalty_join.rpc.loyalty',
-  RPC_LOYALTY_QUIT: 'loyalty_quit.rpc.loyalty',
-  RPC_LOYALTY_TRANSACTION: 'loyalty_transaction.rpc.loyalty',
-  RPC_OFFERS_QUERY: 'offers_query.rpc.loyalty'
+  MODEL_EXAMPLE: 'example.model.request'
 };
 
 ThinMint.Util = {};
