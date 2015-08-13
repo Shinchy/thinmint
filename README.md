@@ -427,6 +427,15 @@ ThinMint.RequestMethod.add('Drupal.FAQ', new ThinMint.DrupalRequest({
 }));
 ```
 
+### Alternatively, you can fetch JSON from Drupal
+```javascript
+ThinMint.RequestMethod.add('Drupal.TranslationSet', new ThinMint.DrupalRequest({
+  eventName: ThinMint.Event.DRUPAL_TRANSLATION_SET,
+  method: 'elc_nodeblock',
+  args: [node_id]
+}));
+```
+
 # Include Order
 
 ```
