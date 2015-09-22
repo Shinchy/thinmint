@@ -83,12 +83,12 @@ ThinMint.Panel.prototype.render = function(data) {
     if(typeof this.index === 'number') {
       this.$el.addClass( 'index-' + this.index );
     }
-    // Run any post-render changes.
-    this.postRender();
     // Update the DOM pointers.
     this.getDom();
     // Bind event listeners.
     this.bindDomEvents();
+    // Run any post-render changes.
+    this.postRender();
   };
 };
 
