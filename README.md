@@ -421,6 +421,7 @@ ThinMint.RequestMethod.add('Loyalty.User', new ThinMint.RpcRequest({
 
 ### Add a Drupal request to fetch a Drupal node
 ```javascript
+// Path: /elc_api/endeca_content_result/{node}
 ThinMint.RequestMethod.add('Drupal.FAQ', new ThinMint.DrupalRequest({
   eventName: ThinMint.Event.DRUPAL_FAQ,
   node: ThinMint.DRUPAL.FAQ
@@ -429,6 +430,8 @@ ThinMint.RequestMethod.add('Drupal.FAQ', new ThinMint.DrupalRequest({
 
 ### Alternatively, you can fetch JSON from Drupal
 ```javascript
+// Path: /elc_api/{method}/{args}.join('/')
+// e.g. /elc_api/elc_nodeblock/{node_id}
 ThinMint.RequestMethod.add('Drupal.TranslationSet', new ThinMint.DrupalRequest({
   eventName: ThinMint.Event.DRUPAL_TRANSLATION_SET,
   method: 'elc_nodeblock',
