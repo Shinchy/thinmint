@@ -39,7 +39,7 @@ ThinMint.Mixin.Paginate = function() {
 
   this.pageNext = function() {
     if(this.page >= this.pages) {
-      console.warn('ThinMint.Mixin.Paginate', 'Already at the max page.');
+      this.console.warn('ThinMint.Mixin.Paginate', 'Already at the max page.');
       return;
     }
 
@@ -49,7 +49,7 @@ ThinMint.Mixin.Paginate = function() {
 
   this.pagePrevious = function() {
     if(this.page <= this.pageFirst) {
-      console.warn('ThinMint.Mixin.Paginate', 'Already at the first page.');
+      this.console.warn('ThinMint.Mixin.Paginate', 'Already at the first page.');
       return;
     }
 
@@ -62,7 +62,7 @@ ThinMint.Mixin.Paginate = function() {
 
     if(page >= this.pages
     || page <= this.pageFirst) {
-      console.warn('ThinMint.Mixin.Paginate', 'Cannot go outside of the allowed pages.');
+      this.console.warn('ThinMint.Mixin.Paginate', 'Cannot go outside of the allowed pages.');
       return;
     }
 

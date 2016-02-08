@@ -6,6 +6,7 @@
 * [Routes](#routes)
 * [Controlers](#controllers)
 * [Models](#request-models)
+* [Logging](#logging)
 
 <a name="views-templates"></a>
 ## Views / Templates
@@ -128,7 +129,7 @@ The postRender method in this mixin checks if this particular user is part of th
 
 ```javascript
 ThinMint.Mixin.LoyaltyUser = function() {
-  var _super = {}; 
+  var _super = {};
   _super.init = this.init;
   _super.render = this.render;
   _super.postRender = this.postRender;
@@ -142,24 +143,24 @@ ThinMint.Mixin.LoyaltyUser = function() {
   this.render = function() {
     // Can control the rendering flow here. Not necessary
     // to render this panel if we do not have sufficient data.
-    if( typeof this.templateData.loyalty_account === 'undefined' ) { 
-      console.error('ThinMint.Mixin.LoyaltyUser.render', 'TemplateData LoyaltyAccount is required before rendering.');
+    if( typeof this.templateData.loyalty_account === 'undefined' ) {
+      this.console.error('ThinMint.Mixin.LoyaltyUser.render', 'TemplateData LoyaltyAccount is required before rendering.');
       return;
-    }   
+    }
 
     _super.render.apply(this, arguments);
-  };  
+  };
 
   this.postRender = function() {
     _super.postRender.apply(this, arguments);
 
     // Attach account or guest data to this panel.
-    if( jQuery.isPlainObject(this.templateData.loyalty_account) ) { 
-      if( this.templateData.loyalty_account.user.is_loyalty_member ) { 
+    if( jQuery.isPlainObject(this.templateData.loyalty_account) ) {
+      if( this.templateData.loyalty_account.user.is_loyalty_member ) {
         this.$el.addClass('is-member');
       }
-    }   
-  };  
+    }
+  };
 
   // Define our listener.
   ThinMint.Page.Panel.on(ThinMint.Event.RPC_LOYALTY_USER, jQuery.proxy( this.setLoyaltyAccount, this ) );
@@ -178,10 +179,10 @@ ThinMint.Panel.Transactions = function($el, options) {
   ThinMint.Mixin.LoyaltyUser.call(this);
   ThinMint.Mixin.Paginate.call(this);
 
-  console.info('ThinMint.Panel.Transactions', 'Constructor called.', arguments);
+  this.console.info('ThinMint.Panel.Transactions', 'Constructor called.', arguments);
 
   this.template = '/account/loyalty/panel/transactions';
-  this.templateData = {}; 
+  this.templateData = {};
   this.transactionDateFormat = 'mm/dd/yy';
 
   this.getDom();
@@ -214,17 +215,17 @@ ThinMint.Panel.Transactions.prototype.init = function() {
   // Call parent init method.
   this.parent.init.apply(this, arguments);
 
-  console.info('ThinMint.Panel.Transactions.init', 'Init called.', arguments);
+  this.console.info('ThinMint.Panel.Transactions.init', 'Init called.', arguments);
 };
 
 ThinMint.Panel.Transactions.prototype.onPage = function() {
-  console.log( this.getPage() );
+  this.console.log( this.getPage() );
 };
 
 ThinMint.Panel.Transactions.prototype.setTransactions = function(event, err, data, response) {
   var that = this;
   if(err) {
-    console.error('ThinMint.Panel.Transactions', 'Problem with the transactions response', err);
+    this.console.error('ThinMint.Panel.Transactions', 'Problem with the transactions response', err);
     return;
   }
 
@@ -261,7 +262,7 @@ ThinMint.Panel.TransactionsChild = function($el, options) {
   // Call parent constructor.
   ThinMint.Panel.Transactions.apply(this, arguments);
 
-  console.info('ThinMint.Panel.TransactionsChild', 'Constructor called.', arguments);
+  this.console.info('ThinMint.Panel.TransactionsChild', 'Constructor called.', arguments);
 
   this.transactionDateFormat = 'dddd, mmmm d, yyyy';
 };
@@ -271,7 +272,7 @@ ThinMint.Panel.TransactionsChild.prototype.init = function() {
   // Call parent init method.
   ThinMint.Panel.Transactions.prototype.init.apply(this, arguments);
 
-  console.info('ThinMint.Panel.TransactionsChild.init', 'Init called.', arguments);
+  this.console.info('ThinMint.Panel.TransactionsChild.init', 'Init called.', arguments);
 };
 
 ThinMint.Panel.TransactionsChild.prototype.setTransactions = function(event, err, data, response) {
@@ -300,7 +301,7 @@ jQuery(function() {
 
 // mode: 'hash' => onhashchange
 // mode: 'history' => html5 pushstate
-Router.config({ mode: 'hash' }); 
+Router.config({ mode: 'hash' });
 //Router.navigate();
 
 // HISTORY --
@@ -370,12 +371,12 @@ ThinMint.Page.Panel.on(ThinMint.Event.PAGE_INDEX, function(event) {
     RequestMethod.get('Loyalty.User')
   ).add(
     RequestMethod.get('Offers.Query')
-  );  
+  );
 
   rpcQueue.run(function() {
     rpcQueue = null;
     $layout.show();
-  }); 
+  });
 });
 ```
 
@@ -388,7 +389,7 @@ ThinMint.Page.Panel.on(ThinMint.Event.PAGE_INDEX, function(event) {
     ThinMint.RequestMethod.get('User')
   ).add(
     ThinMint.RequestMethod.get('Loyalty.User')
-  );  
+  );
 
   // Fetch the Drupal nodes.
   var requestQueue = new ThinMint.RequestQueue();
@@ -396,7 +397,7 @@ ThinMint.Page.Panel.on(ThinMint.Event.PAGE_INDEX, function(event) {
     rpcQueue
   ).add(
     ThinMint.RequestMethod.get('Drupal.FAQ')
-  );  
+  );
 
   requestQueue.run(function() {
     requestQueue = null;
@@ -437,6 +438,45 @@ ThinMint.RequestMethod.add('Drupal.TranslationSet', new ThinMint.DrupalRequest({
   method: 'elc_nodeblock',
   args: [node_id]
 }));
+```
+
+<a name="logging"></a>
+## Logging
+Include these definitions in `your_app_constants.js` on `dom:ready`. Here are a few examples to illustrate how you can tune the logging for various aspects of your application.  By design, the children classes for `ThinMint.Request` and `ThinMint.Panel` inherit the `Logger` class.  To override, you must instantiate a new `Logger` for the children if you would like to change their logging behaviors.
+
+### Disable logging entirely
+```
+ThinMint.Logger.off()
+```
+
+### Only log errors
+```
+ThinMint.Logger.off().on('error');
+```
+
+### Disable info and warn for everything
+```
+ThinMint.Logger.off('info', 'warn');
+```
+
+### Disable info for Request and children; disable logging for DrupalRequest entirely
+```
+ThinMint.Request.prototype.console.off('info');
+ThinMint.DrupalRequest.prototype.console = ( new ThinMint.Logger() ).off();
+```
+
+### Disable all logging for the Transaction History panel
+```
+ThinMint.Panel.Transactions.prototype.console = ( new ThinMint.Logger() ).off();
+```
+
+### Disable all logging except for the Transaction History panel
+```
+ThinMint.Logger.off();
+ThinMint.Panel.Transactions.prototype.console = ( new ThinMint.Logger() ).on()
+
+// In case you would also like to see logs from Request
+ThinMint.Request.prototype.console.on('log', 'info');
 ```
 
 # Include Order
