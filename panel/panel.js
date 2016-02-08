@@ -2,12 +2,12 @@ ThinMint.Panel = function($el, options) {
   var undefined;
 
   if( jQuery.isElement($el) === false ) {
-    console.error('ThinMint.Panel', 'Must be a valid DOM element.', arguments);
+    this.console.error('ThinMint.Panel', 'Must be a valid DOM element.', arguments);
     return;
   }
 
   if( $el.length !== 1 ) {
-    console.error('ThinMint.Panel', 'Only one element may exist per instance. If more than one of the same type of panel needs to exist on the page, use the [data-id] and [class] attributes in place of [id]. In the Controller, iterate over each panel DOM node and instantiate a new panel for each.', arguments);
+    this.console.error('ThinMint.Panel', 'Only one element may exist per instance. If more than one of the same type of panel needs to exist on the page, use the [data-id] and [class] attributes in place of [id]. In the Controller, iterate over each panel DOM node and instantiate a new panel for each.', arguments);
     return;
   }
 
@@ -16,7 +16,7 @@ ThinMint.Panel = function($el, options) {
   }
 
   if(jQuery.isPlainObject(options) === false) {
-    console.error('ThinMint.Panel', 'Options must be a plain object.', arguments);
+    this.console.error('ThinMint.Panel', 'Options must be a plain object.', arguments);
     return;
   }
 
@@ -44,8 +44,10 @@ ThinMint.Panel = function($el, options) {
   this.init();
 };
 
+ThinMint.Panel.prototype.console = new ThinMint.Logger();
+
 ThinMint.Panel.prototype.init = function() {
-  console.info('ThinMint.Panel.init', 'Base init called.', arguments);
+  this.console.info('ThinMint.Panel.init', 'Base init called.', arguments);
 };
 
 ThinMint.Panel.prototype._destruct = function() {
@@ -61,7 +63,7 @@ ThinMint.Panel.prototype.render = function(data) {
   data = data || this.templateData;
 
   if( jQuery.isPlainObject(data) === false ) {
-    console.error('ThinMint.Panel.render', 'TemplateData is required before rendering.');
+    this.console.error('ThinMint.Panel.render', 'TemplateData is required before rendering.');
     return;
   }
 

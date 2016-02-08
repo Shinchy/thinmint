@@ -2,7 +2,7 @@ ThinMint.Panel.Example = function($el, options) {
   // Call parent constructor.
   ThinMint.Panel.apply(this, arguments);
 
-  console.info('ThinMint.Panel.Example', 'Constructor called.', arguments);
+  this.console.info('ThinMint.Panel.Example', 'Constructor called.', arguments);
 
   this.template = '/account/loyalty/panel/example';//mustache.___account___loyalty___panel___example;
   this.templateData = {};
@@ -13,7 +13,7 @@ ThinMint.Panel.Example = function($el, options) {
   // Bind an example listener for Account changes.
 //  ThinMint.Page.Panel.on( ThinMint.Event.ACCOUNT, jQuery.proxy( this.setAccount, this ) );
 };
-ThinMint.Panel.Example.prototype = Object.create(ThinMint.Panel.prototype);//new ThinMint.Panel();
+ThinMint.Panel.Example.prototype = Object.create(ThinMint.Panel.prototype);
 ThinMint.Panel.Example.prototype.parent = ThinMint.Panel.prototype;
 
 ThinMint.Panel.Example.prototype.getDom = function() {
@@ -30,7 +30,7 @@ ThinMint.Panel.Example.prototype.init = function() {
   // Call parent init method.
   this.parent.init.apply(this, arguments);
 
-  console.info('ThinMint.Panel.Example.init', 'Init called.', arguments);
+  this.console.info('ThinMint.Panel.Example.init', 'Init called.', arguments);
 };
 
 ThinMint.Panel.Example.prototype.render = function(data) {
