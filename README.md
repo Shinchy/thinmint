@@ -479,7 +479,7 @@ ThinMint.Panel.Transactions.prototype.console = ( new ThinMint.Logger() ).on()
 ThinMint.Request.prototype.console.on('log', 'info');
 ```
 
-# Include Order
+## Include Order
 
 ```
 # Libraries
