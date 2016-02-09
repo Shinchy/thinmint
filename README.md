@@ -444,33 +444,33 @@ ThinMint.RequestMethod.add('Drupal.TranslationSet', new ThinMint.DrupalRequest({
 ## Logging
 Include these definitions in `your_app_constants.js` on `dom:ready`. Here are a few examples to illustrate how you can tune the logging for various aspects of your application.  By design, the children classes for `ThinMint.Request` and `ThinMint.Panel` inherit the `Logger` class.  To override, you must instantiate a new `Logger` for the children if you would like to change their logging behaviors.
 
-### Disable logging entirely
+##### Disable logging entirely
 ```
 ThinMint.Logger.off()
 ```
 
-### Only log errors
+##### Only log errors
 ```
 ThinMint.Logger.off().on('error');
 ```
 
-### Disable info and warn for everything
+##### Disable info and warn for everything
 ```
 ThinMint.Logger.off('info', 'warn');
 ```
 
-### Disable info for Request and children; disable logging for DrupalRequest entirely
+##### Disable info for Request and children; disable logging for DrupalRequest entirely
 ```
 ThinMint.Request.prototype.console.off('info');
 ThinMint.DrupalRequest.prototype.console = ( new ThinMint.Logger() ).off();
 ```
 
-### Disable all logging for the Transaction History panel
+##### Disable all logging for the Transaction History panel
 ```
 ThinMint.Panel.Transactions.prototype.console = ( new ThinMint.Logger() ).off();
 ```
 
-### Disable all logging except for the Transaction History panel
+##### Disable all logging except for the Transaction History panel
 ```
 ThinMint.Logger.off();
 ThinMint.Panel.Transactions.prototype.console = ( new ThinMint.Logger() ).on()
