@@ -1,6 +1,6 @@
 /**
  * @license
- * ThinMint 0.0.8 <https://github.com/cloudily/thinmint>
+ * ThinMint 0.0.9 <https://github.com/cloudily/thinmint>
  * Available under MIT license <https://raw.githubusercontent.com/cloudily/thinmint/master/LICENSE>
  */
 
@@ -33,7 +33,7 @@ jQuery.fn.serializeObject = function() {
 // ---
 
 var ThinMint = {};
-ThinMint.VERSION = '0.0.8';
+ThinMint.VERSION = '0.0.9';
 ThinMint.Event = {
   MODEL_EXAMPLE: 'example.model.request'
 };
@@ -183,10 +183,6 @@ ThinMint.Util.Mustache.render = function(template, data) {
 // ---
 
 ThinMint.Page = {};
-ThinMint.Page.getContainer = function() {
-  // XXX: This needs to be moved.
-  return jQuery('#loyalty__content');
-};
 ThinMint.Page.Panel = (function() {
   var allPanels = {};
   var messageBus = jQuery({});
@@ -228,6 +224,22 @@ ThinMint.Page.Panel = (function() {
     // Returning a non-cloned version means that its namespace can be modified.
     // This may or may not be necessary.
     return allPanels;
+  };
+
+  that.clear = function() {
+    var panels = that.all();
+    for(var key in panels) {
+      if(panels.hasOwnProperty(key) === false) {
+        continue;
+      }
+
+      try {
+        panels[key]._destruct();
+      } catch(e) {
+      }
+
+      delete panels[key];
+    }
   };
 
   /**
@@ -284,6 +296,3 @@ ThinMint.Page.Panel = (function() {
 
   return that;
 })();
-
-// ---
-
