@@ -110,11 +110,16 @@ The Panel constructor accepts two arguments, `(jQuery) $el` and `(object) option
 * `dom` Object that contains pointers to the DOM nodes that interest this panel.
 * `template` String that points to the mustache template location for this panel.
 * `templateData` Object that contains all of the data that is necessary to render the panel.
+* `eventNamespace` If using the `on` or `one` methods, this will be appended to the event name that is provided. Allows easier model event unbinding when `_destruct` is called.
+* `on` Alias for `ThinMint.Page.Panel.on` with the addition of adding `this.eventNamespace` to the event name.
+* `one` Alias for `ThinMint.Page.Panel.one` with the addition of adding `this.eventNamespace` to the event name.
+* `off` Alias for `ThinMint.Page.Panel.off`.
 
 #### Methods
 
 * `getDom` Use this method to fetch and store your DOM nodes for this panel.
 * `bindDomEvents` Contains definition for event binding for DOM nodes.  Need to capture click, submit, focus or other events?  This is the method where those event binds should live.
+* `bindModelEvents` Definitions for model events that the panel wants to subscribe.
 * `render` Contains instructions on how to render this panel.  The base panel does everything from fetching the `template`, passing `templateData` into the rendering engine, calling `postRender`, `getDom`, and finally `bindDomEvents` in that order.
 * `postRender` This method allows you to manipulate the DOM for the panel prior to calling `getDom` and `bindDomEvents`.
 
@@ -181,14 +186,19 @@ ThinMint.Panel.Transactions = function($el, options) {
 
   this.console.info('ThinMint.Panel.Transactions', 'Constructor called.', arguments);
 
+  this.eventNamespace = '.transactions';
   this.template = '/account/loyalty/panel/transactions';
-  this.templateData = {};
+  this.templateData = {}; 
   this.transactionDateFormat = 'mm/dd/yy';
+  this.transactionTypePrefix = 'loyalty_transaction_type.';
+  this.transactionEventPrefix = 'loyalty_transaction_event.';
+  this.transactionSubtypePrefix = 'loyalty_transaction_subtype.';
+
+  this.setPage( options.page || 1 );
 
   this.getDom();
   this.bindDomEvents();
-
-  ThinMint.Page.Panel.on(ThinMint.Event.RPC_LOYALTY_TRANSACTION, jQuery.proxy( this.setTransactions, this ) );
+  this.bindModelEvents();
 };
 ThinMint.Panel.Transactions.prototype = Object.create(ThinMint.Panel.prototype);
 ThinMint.Panel.Transactions.prototype.parent = ThinMint.Panel.prototype;
@@ -207,8 +217,14 @@ ThinMint.Panel.Transactions.prototype.bindDomEvents = function() {
   this.dom.$pagePrevious.on('click', jQuery.proxy( this.pagePrevious, this ) );
 };
 
+ThinMint.Panel.Transactions.prototype.bindModelEvents = function() {
+  this.on(ThinMint.Event.RPC_LOYALTY_TRANSACTION, jQuery.proxy( this.setTransactions, this ) );
+};
+
 // Force clean-up when instance has been removed from the page.
 ThinMint.Panel.Transactions.prototype._destruct = function() {
+  this.parent._destruct.apply(this, arguments);
+  this.off( this.eventNamespace );
 };
 
 ThinMint.Panel.Transactions.prototype.init = function() {
@@ -219,7 +235,24 @@ ThinMint.Panel.Transactions.prototype.init = function() {
 };
 
 ThinMint.Panel.Transactions.prototype.onPage = function() {
-  this.console.log( this.getPage() );
+  ThinMint.RequestMethod.get('Loyalty.Transaction').setParams([{
+    page_mode: ThinMint.Constant.TRANSACTION_PAGE_MODE,
+    limit: ThinMint.Constant.TRANSACTION_PER_PAGE,
+    page: this.getPage()
+  }]).fetch();
+};
+
+ThinMint.Panel.Transactions.prototype.toLanguageKey = function(key) {
+  return jQuery.trim( key ).toLowerCase().replace(/[^a-z\d\s_]+/ig, '').replace(/[\s_]+/g, '_');
+};
+
+ThinMint.Panel.Transactions.prototype.toLanguageValue = function(key) {
+  if(typeof rb.language[key] === 'string') {
+    return rb.language[key];
+  }
+
+  this.console.warn('RB Language Key Missing', key);
+  return key;
 };
 
 ThinMint.Panel.Transactions.prototype.setTransactions = function(event, err, data, response) {
@@ -230,27 +263,82 @@ ThinMint.Panel.Transactions.prototype.setTransactions = function(event, err, dat
   }
 
   var transactions = [];
-  jQuery.each(data.loyalty_transactions, function(index, transaction) {
-    if('transaction' === transaction.type) {
-      transaction.loyalty_points_spent = false;
-      transaction.loyalty_points_earned = false;
-      transaction.date_pretty = dateFormat(transaction.date, that.transactionDateFormat);
 
-      if('Purchase' === transaction.transaction_type) {
-        // Points have been spent.
-        transaction.loyalty_points_spent = true;
-      } else {
-        // Points have been earned.
-        transaction.loyalty_points_earned = true;
-      }
+  this.setPage(data.pagination.page);
+  this.setPages(data.pagination.total_pages);
+
+  jQuery.each(data.loyalty_transactions, function(index, transaction) {
+    transaction.is_transaction = false;
+    transaction.is_level = false;
+    transaction.pending_flag = !!(transaction.pending_flag);
+
+    try {
+      transaction.date_pretty = dateFormat(transaction.date, that.transactionDateFormat);
+    } catch(e) {
+      this.console.error('ThinMint.Panel.Transactions.setTransactions', 'Problem with dateFormat', transaction.date, e);
+    }
+
+    switch( transaction.type ) {
+      case 'transaction':
+        transaction.is_transaction = true;
+
+        transaction.loyalty_points_spent = false;
+        transaction.loyalty_points_earned = false;
+
+        // Flag properties that are missing as false, so conditionals within
+        // mustache evalulate properly.
+        jQuery.each(['trans_id', 'pos_trans_id'], function(index, prop) {
+          if(typeof transaction[prop] === 'undefined') {
+            transaction[prop] = false;
+          }
+        });
+
+        if( jQuery.trim( transaction.transaction_subtype ) === '') {
+          transaction.transaction_subtype = false;
+        }
+
+        if( jQuery.trim( transaction.transaction_subtype ) === '') {
+          transaction.transaction_subtype = false;
+        } else {
+          transaction.transaction_subtype_string = that.transactionSubtypePrefix + that.toLanguageKey( transaction.transaction_subtype );
+          transaction.transaction_subtype_string = that.toLanguageValue( transaction.transaction_subtype_string );
+        }
+
+        if( transaction.loyalty_points >= 0 ) {
+          transaction.loyalty_points_earned = true;
+        } else {
+          transaction.loyalty_points_spent = true;
+        }
+
+        try {
+          transaction.loyalty_points_abs = Math.abs( transaction.loyalty_points );
+        } catch(e) {
+        }
+        break;
+
+      case 'level':
+        transaction.is_level = true;
+        transaction.is_upgrade_event = false;
+        transaction.is_default_event = false;
+
+        switch( transaction.event ) {
+          case 'upgrade':
+            transaction.is_upgrade_event = true;
+            break;
+
+          default:
+            transaction.is_default_event = true;
+            break;
+        }
+        break;
     }
 
     transactions.push(transaction);
   });
 
   this.templateData.transactions = transactions;
+  this.templateData.pagination = data.pagination;
 
-  // Render the Transaction panel.
   this.render();
 };
 ```
@@ -337,6 +425,21 @@ Router.add(/^history(?:\/page\/(\d+?))?$/, function() {
 }).check().listen();
 
 }); // jQuery dom:ready
+```
+
+#### On page change, clear panels
+
+Here's an example on how to clear panels when the page is changed.  This override can be defined in `your_app_constants.js`, so on each page load, the panels that were previously stored can be destroyed properly.
+
+```
+// Remove and destruct existing panels on page changes.
+(function(checkParent) {
+  ThinMint.Router.check = function() {
+    ThinMint.Page.Panel.clear();
+    checkParent.apply(ThinMint.Router, arguments);
+    return this;
+  };  
+}(ThinMint.Router.check));
 ```
 
 <a name="controllers"></a>
