@@ -183,10 +183,6 @@ ThinMint.Util.Mustache.render = function(template, data) {
 // ---
 
 ThinMint.Page = {};
-ThinMint.Page.getContainer = function() {
-  // XXX: This needs to be moved.
-  return jQuery('#loyalty__content');
-};
 ThinMint.Page.Panel = (function() {
   var allPanels = {};
   var messageBus = jQuery({});
@@ -228,6 +224,22 @@ ThinMint.Page.Panel = (function() {
     // Returning a non-cloned version means that its namespace can be modified.
     // This may or may not be necessary.
     return allPanels;
+  };
+
+  that.clear = function() {
+    var panels = that.all();
+    for(var key in panels) {
+      if(panels.hasOwnProperty(key) === false) {
+        continue;
+      }
+
+      try {
+        panels[key]._destruct();
+      } catch(e) {
+      }
+
+      delete panels[key];
+    }
   };
 
   /**
@@ -284,6 +296,3 @@ ThinMint.Page.Panel = (function() {
 
   return that;
 })();
-
-// ---
-
