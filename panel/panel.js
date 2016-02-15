@@ -41,6 +41,7 @@ ThinMint.Panel = function($el, options) {
   this.dom = {};
   this.template = null;
   this.templateData = {};
+  this.eventNamespace = null;
   this.init();
 };
 
@@ -53,10 +54,33 @@ ThinMint.Panel.prototype.init = function() {
 ThinMint.Panel.prototype._destruct = function() {
 };
 
+ThinMint.Panel.prototype.on = function() {
+  if(typeof this.eventNamespace === 'string') {
+    arguments[0] += this.eventNamespace;
+  }
+
+  ThinMint.Page.Panel.on.apply(ThinMint.Page.Panel, arguments);
+};
+
+ThinMint.Panel.prototype.one = function() {
+  if(typeof this.eventNamespace === 'string') {
+    arguments[0] += this.eventNamespace;
+  }
+
+  ThinMint.Page.Panel.one.apply(ThinMint.Page.Panel, arguments);
+};
+
+ThinMint.Panel.prototype.off = function() {
+  ThinMint.Page.Panel.off.apply(ThinMint.Page.Panel, arguments);
+};
+
 ThinMint.Panel.prototype.getDom = function() {
 };
 
 ThinMint.Panel.prototype.bindDomEvents = function() {
+};
+
+ThinMint.Panel.prototype.bindModelEvents = function() {
 };
 
 ThinMint.Panel.prototype.render = function(data) {
