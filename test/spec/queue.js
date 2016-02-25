@@ -64,7 +64,7 @@ QUnit.test( 'sync queue abort', function( assert ) {
   queue.async = false;
 
   queue.add(function( seq ) {
-    assert.ok( queue.index === 0, 'is first sequene of queue');
+    assert.ok( queue.index === 0, 'is first sequence of queue');
     setTimeout(function() {
       assert.ok(true, 'attempting to abort the queue');
       queue.abort();

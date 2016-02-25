@@ -1,4 +1,4 @@
-# ThinMint v0.0.9
+# ThinMint v0.0.10
 
 * [Views / Templates](#views-templates)
 * [Layout](#views-templates)
@@ -585,27 +585,9 @@ ThinMint.Request.prototype.console.on('log', 'info');
 ## Include Order
 
 ```
-# Libraries
+# ThinMint
 
-thinmint/base.js
-thinmint/panel.js
-thinmint/lib/queue.js
-thinmint/lib/router.js
-thinmint/lib/request.js
-thinmint/lib/rpc_request.js
-thinmint/lib/drupal_request.js
-
-# Mixins
-
-thinmint/mixin.js
-
-# Models
-
-// thinmint/model/example.js
-
-# Panels
-
-// thinmint_panel_example.js
+thinmint/dist/thinmint.js or thinmint.min.js
 
 # Your Libraries
 
