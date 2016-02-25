@@ -8,6 +8,7 @@ QUnit.test( 'create new panel, event trigger/capture, rendering with mustache', 
   var queue = ThinMint.Queue();
   var done = assert.async();
   var dateTimeEvent = 'datetime';
+  var setOnceEvent = 'setonce';
   var $panelTest = jQuery('<div id="panel__test"></div>');
   $panelTest.appendTo('body');
 
@@ -21,14 +22,19 @@ QUnit.test( 'create new panel, event trigger/capture, rendering with mustache', 
 
     this.template = '/panel/test';
     this.templateData = {};
+    this.index = 0;
 
     this.getDom();
     this.bindDomEvents();
-
-    ThinMint.Page.Panel.on(dateTimeEvent, jQuery.proxy( this.setDateTime, this ) );
+    this.bindModelEvents();
   };
   ThinMint.Panel.Test.prototype = Object.create(ThinMint.Panel.prototype);
   ThinMint.Panel.Test.prototype.parent = ThinMint.Panel.prototype;
+
+  ThinMint.Panel.Test.prototype._destruct = function() {
+    assert.ok(true, 'is the _destruct method called')
+    this.parent._destruct.apply(this, arguments);
+  };
 
   ThinMint.Panel.Test.prototype.getDom = function() {
     // Define DOM pointers.
@@ -41,11 +47,20 @@ QUnit.test( 'create new panel, event trigger/capture, rendering with mustache', 
 
   };
 
+  ThinMint.Panel.Test.prototype.bindModelEvents = function() {
+    this.on(dateTimeEvent, jQuery.proxy( this.setDateTime, this ) );
+    this.on(setOnceEvent, jQuery.proxy( this.setOnce, this ) );
+  };
+
   ThinMint.Panel.Test.prototype.setDateTime = function(event, err, data, response) {
     assert.ok(data.date instanceof Date, 'is the date passed to setDateTime an instance of Date');
 
     this.templateData.datetime = data.date;
     this.render();
+  };
+
+  ThinMint.Panel.Test.prototype.setOnce = function() {
+    assert.ok(++this.index <= 1, 'is called only once even after panel is destroyed');
   };
 
   ThinMint.Panel.Test.prototype.render = function() {
@@ -101,6 +116,10 @@ QUnit.test( 'create new panel, event trigger/capture, rendering with mustache', 
     'is allPanels.panel__test.templateData.datetime an instance of date'
   );
 
+  ThinMint.Page.Panel.trigger(setOnceEvent, [ null, {} ]);
   allPanels.panel__test.$el.remove();
+  ThinMint.Page.Panel.clear();
+  ThinMint.Page.Panel.trigger(setOnceEvent, [ null, {} ]);
+
   done();
 });
