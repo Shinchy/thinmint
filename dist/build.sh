@@ -6,12 +6,13 @@ cd "$DIST/../"
 
 uglifyjs --comments --beautify "indent-level=2,bracketize=true" --lint --output "dist/thinmint.js" \
   src/base.js \
-  src/panel/panel.js \
   src/lib/queue.js \
+  src/lib/storage.js \
   src/lib/router.js \
   src/lib/request.js \
   src/lib/rpc_request.js \
   src/lib/drupal_request.js \
+  src/panel/panel.js \
   src/mixin/mixin.js \
   src/mixin/eventemitter.js
 
