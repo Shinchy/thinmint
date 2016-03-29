@@ -1,6 +1,5 @@
 ThinMint.RpcRequest = function(options) {
-  this.options = {
-    url: '/rpc/jsonrpc.tmpl',
+  this.options = jQuery.extend(true, {}, this.options, {
     data: { JSONRPC: '' },
     method: null,
     params: [],
@@ -15,7 +14,7 @@ ThinMint.RpcRequest = function(options) {
       method: null,
       httpMethod: 'POST'
     }
-  };
+  });
 
   ThinMint.Request.apply(this, arguments);
 
@@ -28,6 +27,11 @@ ThinMint.RpcRequest = function(options) {
 };
 ThinMint.RpcRequest.prototype = Object.create(ThinMint.Request.prototype);
 ThinMint.RpcRequest.prototype.parent = ThinMint.Request.prototype;
+ThinMint.RpcRequest.prototype.options = jQuery.extend(true, {},
+  ThinMint.Request.prototype.options, {
+    url: '/rpc/jsonrpc.tmpl'
+  }
+);
 
 ThinMint.RpcRequest.prototype.setMethod = function(method) {
   if( typeof method !== 'string' ) {
@@ -139,6 +143,11 @@ ThinMint.RpcQueue = function() {
   this._RequestInstance = {};
 };
 ThinMint.RpcQueue.prototype.console = new ThinMint.Logger();
+ThinMint.RpcQueue.prototype.options = jQuery.extend(true, {},
+  ThinMint.RpcRequest.prototype.options, {
+    type: 'POST'
+  }
+);
 ThinMint.RpcQueue.prototype.add = function(_Request) {
   if( (_Request instanceof ThinMint.RpcRequest) === false) {
     this.console.error('ThinMint.RpcQueue.add', '_Request must be a ThinMint.RpcRequest Object.', arguments);
@@ -215,10 +224,7 @@ ThinMint.RpcQueue.prototype.fetch = function(callback) {
 
   data.JSONRPC = JSON.stringify( this.getMethods() );
   this.console.info('ThinMint.RpcQueue.run', 'Requesting data for:', this.getMethods());
-
-  jQuery.ajax({
-    type: 'POST',
-    url: '/rpc/jsonrpc.tmpl',
+  var settings = jQuery.extend(true, {}, this.options, {
     data: data,
     success: function(response) {
       that.clearHandled();
@@ -240,4 +246,6 @@ ThinMint.RpcQueue.prototype.fetch = function(callback) {
       callback('Request failed');
     }
   });
+
+  jQuery.ajax(settings);
 };

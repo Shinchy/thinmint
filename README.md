@@ -1,4 +1,4 @@
-# ThinMint v0.0.10
+# ThinMint v0.0.11
 
 * [Views / Templates](#views-templates)
 * [Layout](#views-templates)

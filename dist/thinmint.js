@@ -28,9 +28,7 @@ var ThinMint = {};
 
 ThinMint.VERSION = "0.0.10";
 
-ThinMint.Event = {
-  MODEL_EXAMPLE: "example.model.request"
-};
+ThinMint.Event = {};
 
 ThinMint.Logger = function() {
   this.on = function() {
@@ -223,78 +221,6 @@ ThinMint.Page.Panel = function() {
   return that;
 }();
 
-ThinMint.Panel = function($el, options) {
-  var undefined;
-  if (jQuery.isElement($el) === false) {
-    this.console.error("ThinMint.Panel", "Must be a valid DOM element.", arguments);
-    return;
-  }
-  if ($el.length !== 1) {
-    this.console.error("ThinMint.Panel", "Only one element may exist per instance. If more than one of the same type of panel needs to exist on the page, use the [data-id] and [class] attributes in place of [id]. In the Controller, iterate over each panel DOM node and instantiate a new panel for each.", arguments);
-    return;
-  }
-  if (typeof options === "undefined") {
-    options = {};
-  }
-  if (jQuery.isPlainObject(options) === false) {
-    this.console.error("ThinMint.Panel", "Options must be a plain object.", arguments);
-    return;
-  }
-  ThinMint.Mixin.EventEmitter.call(this);
-  this.options = options;
-  if (typeof this.options.id !== "string" && $el.attr("id") === undefined) {
-    var _id = $el.data("id");
-    if (typeof _id === "string") {
-      this.index = $el.index('[data-id="' + _id + '"]');
-      this.options.id = _id + "--" + this.index;
-    }
-  }
-  ThinMint.Page.Panel.add(this.options.id || $el.attr("id"), this);
-  this.$el = $el;
-  this.dom = {};
-  this.template = null;
-  this.templateData = {};
-  this.init();
-};
-
-ThinMint.Panel.prototype.console = new ThinMint.Logger();
-
-ThinMint.Panel.prototype.init = function() {
-  this.console.info("ThinMint.Panel.init", "Base init called.", arguments);
-};
-
-ThinMint.Panel.prototype._destruct = function() {};
-
-ThinMint.Panel.prototype.getDom = function() {};
-
-ThinMint.Panel.prototype.bindDomEvents = function() {};
-
-ThinMint.Panel.prototype.bindModelEvents = function() {};
-
-ThinMint.Panel.prototype.render = function(data) {
-  data = data || this.templateData;
-  if (jQuery.isPlainObject(data) === false) {
-    this.console.error("ThinMint.Panel.render", "TemplateData is required before rendering.");
-    return;
-  }
-  var path = this.template;
-  var template = ThinMint.Util.Mustache.getTemplate(path);
-  if (template) {
-    var output = ThinMint.Util.Mustache.render(template, data);
-    var $newElement = jQuery(output);
-    this.$el.replaceWith($newElement);
-    this.$el = $newElement;
-    if (typeof this.index === "number") {
-      this.$el.addClass("index-" + this.index);
-    }
-    this.getDom();
-    this.bindDomEvents();
-    this.postRender();
-  }
-};
-
-ThinMint.Panel.prototype.postRender = function() {};
-
 ThinMint = ThinMint || {};
 
 ThinMint.Queue = function() {
@@ -362,6 +288,150 @@ ThinMint.Queue = function() {
   };
   return that;
 };
+
+ThinMint = ThinMint || {};
+
+ThinMint.Storage = function(store) {
+  var that = {}, namespace = "", getDate, expiresSuffix = ".expires", expiresKey;
+  getDate = function() {
+    return +new Date();
+  };
+  expiresKey = function(key) {
+    return key + expiresSuffix;
+  };
+  if (store == false) {
+    store = function() {};
+    store.prototype.data = {};
+    store.prototype.length = 0;
+    store.prototype.updateLength = function() {
+      var that = this;
+      that.length = 0;
+      jQuery.each(that.data, function() {
+        ++that.length;
+      });
+    };
+    store.prototype.key = function(index) {
+      var i = 0, match;
+      jQuery.each(this.data, function(key) {
+        if (i++ == index) {
+          match = key;
+          return false;
+        }
+      });
+      return match;
+    };
+    store.prototype.setItem = function(key, value) {
+      this.data[key] = 1;
+      this[key] = value;
+      this.updateLength();
+    };
+    store.prototype.getItem = function(key) {
+      return this[key];
+    };
+    store.prototype.removeItem = function(key) {
+      delete this[key];
+      delete this.data[key];
+      this.updateLength();
+    };
+    store.prototype.clear = function() {
+      var that = this;
+      jQuery.each(this.data, function(index) {
+        delete that[index];
+      });
+      this.data = {};
+      this.length = 0;
+    };
+    store = new store();
+  }
+  that.all = function() {
+    var i, key, value, l = store.length, data = {};
+    for (i = 0; i < l; i++) {
+      key = store.key(i);
+      data[key] = that.get(key);
+    }
+    return data;
+  };
+  that.set = function(key, value, expiresMs) {
+    key = namespace + key;
+    if (typeof store[key] === "function") {
+      return console.error(key + " is function.");
+    }
+    try {
+      var data = store.setItem(key, JSON.stringify(value));
+      if (typeof expiresMs !== "undefined") {
+        store.setItem(expiresKey(key), getDate() + expiresMs);
+      }
+      return data;
+    } catch (e) {
+      that.gc();
+    }
+  };
+  that.get = function(key) {
+    key = namespace + key;
+    var expires = store.getItem(expiresKey(key));
+    if (expires && getDate() > expires) {
+      that.destroy(key);
+      that.destroy(expiresKey(key));
+    }
+    return JSON.parse(store.getItem(key));
+  };
+  that.destroy = function(key) {
+    key = namespace + key;
+    return store.removeItem(key);
+  };
+  that.clear = function() {
+    return store.clear();
+  };
+  that.toString = function() {
+    return JSON.stringify(that.all());
+  };
+  that.namespace = function(ns) {
+    namespace = ns;
+  };
+  that.increment = function(key, count) {
+    if (typeof count !== "number") {
+      count = 1;
+    }
+    var result = that.get(key);
+    if (!result) {
+      return;
+    }
+    return that.set(key, +result + count);
+  };
+  that.getNamespace = function(ns) {
+    var key = getDate();
+    var result = that.get(ns);
+    if (result) {
+      return result;
+    }
+    that.set(ns, key);
+    return key;
+  };
+  that.setWithNamespace = function(ns, key, val, expiresMs) {
+    var ns = that.getNamespace(ns);
+    return that.set(ns + "." + key, val, expiresMs);
+  };
+  that.getWithNamespace = function(ns, key) {
+    var ns = that.getNamespace(ns);
+    return that.get(ns + "." + key);
+  };
+  that.clearNamespace = function(ns) {
+    return that.increment(ns);
+  };
+  that.gc = function() {
+    var i, key, value, expiresLength = expiresSuffix.length, place, l = store.length;
+    for (i = 0; i < l; i++) {
+      key = store.key(i);
+      if (key) {
+        place = key.lastIndexOf(expiresSuffix);
+        if (place > -1 && key.length - expiresLength === place) {
+          that.get(key.substr(0, place));
+        }
+      }
+    }
+  };
+  return that;
+}(typeof localStorage !== "undefined" && localStorage);
 
 ThinMint = ThinMint || {};
 
@@ -695,8 +765,7 @@ ThinMint.RequestQueue.prototype.run = function(callback) {
 };
 
 ThinMint.RpcRequest = function(options) {
-  this.options = {
-    url: "/rpc/jsonrpc.tmpl",
+  this.options = jQuery.extend(true, {}, this.options, {
     data: {
       JSONRPC: ""
     },
@@ -713,7 +782,7 @@ ThinMint.RpcRequest = function(options) {
       method: null,
       httpMethod: "POST"
     }
-  };
+  });
   ThinMint.Request.apply(this, arguments);
   if (this.options.method) {
     this.setMethod(this.options.method);
@@ -726,6 +795,10 @@ ThinMint.RpcRequest = function(options) {
 ThinMint.RpcRequest.prototype = Object.create(ThinMint.Request.prototype);
 
 ThinMint.RpcRequest.prototype.parent = ThinMint.Request.prototype;
+
+ThinMint.RpcRequest.prototype.options = jQuery.extend(true, {}, ThinMint.Request.prototype.options, {
+  url: "/rpc/jsonrpc.tmpl"
+});
 
 ThinMint.RpcRequest.prototype.setMethod = function(method) {
   if (typeof method !== "string") {
@@ -831,6 +904,10 @@ ThinMint.RpcQueue = function() {
 
 ThinMint.RpcQueue.prototype.console = new ThinMint.Logger();
 
+ThinMint.RpcQueue.prototype.options = jQuery.extend(true, {}, ThinMint.RpcRequest.prototype.options, {
+  type: "POST"
+});
+
 ThinMint.RpcQueue.prototype.add = function(_Request) {
   if (_Request instanceof ThinMint.RpcRequest === false) {
     this.console.error("ThinMint.RpcQueue.add", "_Request must be a ThinMint.RpcRequest Object.", arguments);
@@ -910,9 +987,7 @@ ThinMint.RpcQueue.prototype.fetch = function(callback) {
   callback = ThinMint.Util.callback(callback);
   data.JSONRPC = JSON.stringify(this.getMethods());
   this.console.info("ThinMint.RpcQueue.run", "Requesting data for:", this.getMethods());
-  jQuery.ajax({
-    type: "POST",
-    url: "/rpc/jsonrpc.tmpl",
+  var settings = jQuery.extend(true, {}, this.options, {
     data: data,
     success: function(response) {
       that.clearHandled();
@@ -930,6 +1005,7 @@ ThinMint.RpcQueue.prototype.fetch = function(callback) {
       callback("Request failed");
     }
   });
+  jQuery.ajax(settings);
 };
 
 ThinMint.DrupalRequest = function(options) {
@@ -959,7 +1035,9 @@ ThinMint.DrupalRequest.prototype = Object.create(ThinMint.Request.prototype);
 
 ThinMint.DrupalRequest.prototype.parent = ThinMint.Request.prototype;
 
-ThinMint.DrupalRequest.prototype.options.url = "/elc_api/";
+ThinMint.DrupalRequest.prototype.options = jQuery.extend(true, {}, ThinMint.Request.prototype.options, {
+  url: "/elc_api/"
+});
 
 ThinMint.DrupalRequest.prototype.EVENT_NAME = ".content.drupal";
 
@@ -969,6 +1047,78 @@ ThinMint.DrupalRequest.prototype.handleResponse = function(err, data, response, 
     ThinMint.Page.Panel.trigger(this.options.node + this.EVENT_NAME, [ err, data ]);
   }
 };
+
+ThinMint.Panel = function($el, options) {
+  var undefined;
+  if (jQuery.isElement($el) === false) {
+    this.console.error("ThinMint.Panel", "Must be a valid DOM element.", arguments);
+    return;
+  }
+  if ($el.length !== 1) {
+    this.console.error("ThinMint.Panel", "Only one element may exist per instance. If more than one of the same type of panel needs to exist on the page, use the [data-id] and [class] attributes in place of [id]. In the Controller, iterate over each panel DOM node and instantiate a new panel for each.", arguments);
+    return;
+  }
+  if (typeof options === "undefined") {
+    options = {};
+  }
+  if (jQuery.isPlainObject(options) === false) {
+    this.console.error("ThinMint.Panel", "Options must be a plain object.", arguments);
+    return;
+  }
+  ThinMint.Mixin.EventEmitter.call(this);
+  this.options = options;
+  if (typeof this.options.id !== "string" && $el.attr("id") === undefined) {
+    var _id = $el.data("id");
+    if (typeof _id === "string") {
+      this.index = $el.index('[data-id="' + _id + '"]');
+      this.options.id = _id + "--" + this.index;
+    }
+  }
+  ThinMint.Page.Panel.add(this.options.id || $el.attr("id"), this);
+  this.$el = $el;
+  this.dom = {};
+  this.template = null;
+  this.templateData = {};
+  this.init();
+};
+
+ThinMint.Panel.prototype.console = new ThinMint.Logger();
+
+ThinMint.Panel.prototype.init = function() {
+  this.console.info("ThinMint.Panel.init", "Base init called.", arguments);
+};
+
+ThinMint.Panel.prototype._destruct = function() {};
+
+ThinMint.Panel.prototype.getDom = function() {};
+
+ThinMint.Panel.prototype.bindDomEvents = function() {};
+
+ThinMint.Panel.prototype.bindModelEvents = function() {};
+
+ThinMint.Panel.prototype.render = function(data) {
+  data = data || this.templateData;
+  if (jQuery.isPlainObject(data) === false) {
+    this.console.error("ThinMint.Panel.render", "TemplateData is required before rendering.");
+    return;
+  }
+  var path = this.template;
+  var template = ThinMint.Util.Mustache.getTemplate(path);
+  if (template) {
+    var output = ThinMint.Util.Mustache.render(template, data);
+    var $newElement = jQuery(output);
+    this.$el.replaceWith($newElement);
+    this.$el = $newElement;
+    if (typeof this.index === "number") {
+      this.$el.addClass("index-" + this.index);
+    }
+    this.getDom();
+    this.bindDomEvents();
+    this.postRender();
+  }
+};
+
+ThinMint.Panel.prototype.postRender = function() {};
 
 ThinMint.Mixin = {};
 
