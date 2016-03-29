@@ -29,7 +29,12 @@ ThinMint.DrupalRequest = function(options) {
 ThinMint.DrupalRequest.prototype = Object.create(ThinMint.Request.prototype);
 ThinMint.DrupalRequest.prototype.parent = ThinMint.Request.prototype;
 
-ThinMint.DrupalRequest.prototype.options.url = '/elc_api/';
+ThinMint.DrupalRequest.prototype.options = jQuery.extend(true, {},
+  ThinMint.Request.prototype.options, {
+    url: '/elc_api/'
+  }
+);
+
 ThinMint.DrupalRequest.prototype.EVENT_NAME = '.content.drupal';
 
 ThinMint.DrupalRequest.prototype.handleResponse = function(err, data, response, callback, options) {

@@ -35,7 +35,6 @@ jQuery.fn.serializeObject = function() {
 var ThinMint = {};
 ThinMint.VERSION = '0.0.10';
 ThinMint.Event = {
-  MODEL_EXAMPLE: 'example.model.request'
 };
 
 // ---
