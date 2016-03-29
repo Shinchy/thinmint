@@ -1,6 +1,6 @@
 /**
  * @license
- * ThinMint 0.0.10 <https://github.com/cloudily/thinmint>
+ * ThinMint 0.0.11 <https://github.com/cloudily/thinmint>
  * Available under MIT license <https://raw.githubusercontent.com/cloudily/thinmint/master/LICENSE>
  */
 var mustache = mustache || {};
@@ -26,7 +26,7 @@ jQuery.fn.serializeObject = function() {
 
 var ThinMint = {};
 
-ThinMint.VERSION = "0.0.10";
+ThinMint.VERSION = "0.0.11";
 
 ThinMint.Event = {};
 
