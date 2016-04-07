@@ -185,7 +185,6 @@ ThinMint.Panel.Transactions = function($el, options) {
 
   this.console.info('ThinMint.Panel.Transactions', 'Constructor called.', arguments);
 
-  this.eventNamespace = '.transactions';
   this.template = '/account/loyalty/panel/transactions';
   this.templateData = {}; 
   this.transactionDateFormat = 'mm/dd/yy';
@@ -223,7 +222,6 @@ ThinMint.Panel.Transactions.prototype.bindModelEvents = function() {
 // Force clean-up when instance has been removed from the page.
 ThinMint.Panel.Transactions.prototype._destruct = function() {
   this.parent._destruct.apply(this, arguments);
-  this.off( this.eventNamespace );
 };
 
 ThinMint.Panel.Transactions.prototype.init = function() {
@@ -383,12 +381,12 @@ Our Routes are loaded when the DOM is ready.  Routes are defined using regular e
 
 #### Methods
 
-* `navigate` Accepts a path string to perform a redirect.
 * `add` First param is the RegEx route to be added. `/^history(?:\/page\/(\d+?))?$/` or `/^about$/`. Second param is the function that will handle when matched.
-* `remove` Attempts to remove a route using either the `path` or `handler` supplied in the `add` method.
-* `flush` Sets the router to its initial state.
 * `config` Accepts an object for options. Can currently control the mode (hash or history) and root.
+* `flush` Sets the router to its initial state.
 * `listen` Instructs the router to start listening for navigation changes.
+* `navigate` Accepts a path string to perform a redirect.
+* `remove` Attempts to remove a route using either the `path` or `handler` supplied in the `add` method.
 
 The Router.config mode property can be set to `history` in order to use HTML5 history.pushstate. In order to use this mode, you will have to notify the sysadmins to create a rewrite rule to point all routes to the main page that is served by Perl.
 
@@ -441,10 +439,10 @@ Here's an example on how to clear panels when the page is changed.  This overrid
 
 ```javascript
 // Remove and destruct existing panels on page changes.
-(function(checkParent) {
+(function(super) {
   ThinMint.Router.check = function() {
     ThinMint.Page.Panel.clear();
-    checkParent.apply(ThinMint.Router, arguments);
+    super.apply(ThinMint.Router, arguments);
     return this;
   };  
 }(ThinMint.Router.check));
