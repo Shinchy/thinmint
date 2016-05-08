@@ -1,6 +1,6 @@
 /**
  * @license
- * ThinMint 0.0.11 <https://github.com/cloudily/thinmint>
+ * ThinMint 0.0.12 <https://github.com/cloudily/thinmint>
  * Available under MIT license <https://raw.githubusercontent.com/cloudily/thinmint/master/LICENSE>
  */
 
@@ -33,7 +33,7 @@ jQuery.fn.serializeObject = function() {
 // ---
 
 var ThinMint = {};
-ThinMint.VERSION = '0.0.11';
+ThinMint.VERSION = '0.0.12';
 ThinMint.Event = {
 };
 
