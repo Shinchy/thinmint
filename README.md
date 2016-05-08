@@ -1,4 +1,4 @@
-# ThinMint v0.0.10
+# ThinMint v0.0.12
 
 * [Views / Templates](#views-templates)
 * [Layout](#views-templates)
@@ -110,10 +110,6 @@ The Panel constructor accepts two arguments, `(jQuery) $el` and `(object) option
 * `dom` Object that contains pointers to the DOM nodes that interest this panel.
 * `template` String that points to the mustache template location for this panel.
 * `templateData` Object that contains all of the data that is necessary to render the panel.
-* `eventNamespace` If using the `on` or `one` methods, this will be appended to the event name that is provided. Allows easier model event unbinding when `_destruct` is called.
-* `on` Alias for `ThinMint.Page.Panel.on` with the addition of adding `this.eventNamespace` to the event name.
-* `one` Alias for `ThinMint.Page.Panel.one` with the addition of adding `this.eventNamespace` to the event name.
-* `off` Alias for `ThinMint.Page.Panel.off`.
 
 #### Methods
 
@@ -122,6 +118,9 @@ The Panel constructor accepts two arguments, `(jQuery) $el` and `(object) option
 * `bindModelEvents` Definitions for model events that the panel wants to subscribe.
 * `render` Contains instructions on how to render this panel.  The base panel does everything from fetching the `template`, passing `templateData` into the rendering engine, calling `postRender`, `getDom`, and finally `bindDomEvents` in that order.
 * `postRender` This method allows you to manipulate the DOM for the panel prior to calling `getDom` and `bindDomEvents`.
+* `on` Alias for `ThinMint.Page.Panel.on`.
+* `one` Alias for `ThinMint.Page.Panel.one`.
+* `off` Alias for `ThinMint.Page.Panel.off`.
 
 ### Panel Mixins
 These allow you to have functionality in one place that applies to many panels for code reusability and ease-of-maintenance.  Writing a mixin is fairly straightforward, just be sure to include any references to parent/super methods if overriding and call those parent methods when necessary.
@@ -186,7 +185,6 @@ ThinMint.Panel.Transactions = function($el, options) {
 
   this.console.info('ThinMint.Panel.Transactions', 'Constructor called.', arguments);
 
-  this.eventNamespace = '.transactions';
   this.template = '/account/loyalty/panel/transactions';
   this.templateData = {}; 
   this.transactionDateFormat = 'mm/dd/yy';
@@ -224,7 +222,6 @@ ThinMint.Panel.Transactions.prototype.bindModelEvents = function() {
 // Force clean-up when instance has been removed from the page.
 ThinMint.Panel.Transactions.prototype._destruct = function() {
   this.parent._destruct.apply(this, arguments);
-  this.off( this.eventNamespace );
 };
 
 ThinMint.Panel.Transactions.prototype.init = function() {
@@ -382,6 +379,15 @@ Our Routes are loaded when the DOM is ready.  Routes are defined using regular e
 /history/page/50
 ```
 
+#### Methods
+
+* `add` First param is the RegEx route to be added. `/^history(?:\/page\/(\d+?))?$/` or `/^about$/`. Second param is the function that will handle when matched.
+* `config` Accepts an object for options. Can currently control the mode (hash or history) and root.
+* `flush` Sets the router to its initial state.
+* `listen` Instructs the router to start listening for navigation changes.
+* `navigate` Accepts a path string to perform a redirect.
+* `remove` Attempts to remove a route using either the `path` or `handler` supplied in the `add` method.
+
 The Router.config mode property can be set to `history` in order to use HTML5 history.pushstate. In order to use this mode, you will have to notify the sysadmins to create a rewrite rule to point all routes to the main page that is served by Perl.
 
 ```javascript
@@ -431,14 +437,14 @@ Router.add(/^history(?:\/page\/(\d+?))?$/, function() {
 
 Here's an example on how to clear panels when the page is changed.  This override can be defined in `your_app_constants.js`, so on each page load, the panels that were previously stored can be destroyed properly.
 
-```
+```javascript
 // Remove and destruct existing panels on page changes.
-(function(checkParent) {
+(function(_super) {
   ThinMint.Router.check = function() {
     ThinMint.Page.Panel.clear();
-    checkParent.apply(ThinMint.Router, arguments);
+    _super.apply(ThinMint.Router, arguments);
     return this;
-  };  
+  };
 }(ThinMint.Router.check));
 ```
 
@@ -467,19 +473,32 @@ ThinMint.Page.Panel.on(ThinMint.Event.PAGE_INDEX, function(event) {
   });
 
   // Get the necessary data for the page.
-  var rpcQueue = new RequestQueue();
+  var rpcQueue = new ThinMint.RpcQueue();
   rpcQueue.add(
-    RequestMethod.get('User')
+    ThinMint.RequestMethod.get('User')
   ).add(
-    RequestMethod.get('Loyalty.User')
+    ThinMint.RequestMethod.get('Loyalty.User')
   ).add(
-    RequestMethod.get('Offers.Query')
-  );
+    ThinMint.RequestMethod.get('Offers.Query')
+  );  
 
-  rpcQueue.run(function() {
+  // Fetch the Drupal nodes.
+  var requestQueue = new ThinMint.RequestQueue();
+  requestQueue.add(
+    rpcQueue
+  ).add(
+    ThinMint.RequestMethod.get('Drupal.Benefits')
+  );  
+
+  // Must be a loyalty user to view this page.
+  ThinMint.Page.Panel.one(ThinMint.Event.RPC_LOYALTY_USER, ThinMint.Util.isLoyaltyUserEvent);
+
+  requestQueue.run(function() {
+    requestQueue = null;
     rpcQueue = null;
+
     $layout.show();
-  });
+  }); 
 });
 ```
 
@@ -511,15 +530,36 @@ ThinMint.Page.Panel.on(ThinMint.Event.PAGE_INDEX, function(event) {
 ```
 
 <a name="request-models"></a>
-## JSON-RPC Queue
-** Needs to be updated **
+## Models
 Located in `thinmint/lib/request.js`, this file has the definitions for a Base Request class, Request Manager via RequestMethod, and a Request Queue via RequestQueue.  The Model definitions currently live in `thinmint/model/*.js`
+
+### Event Naming
+
+`{unique_event_name}.{request|rpc|drupal|page}.{project_name}`
+
+http://api.jquery.com/on/#event-names
 
 ### Add an RPC request to the request manager
 ```javascript
 ThinMint.RequestMethod.add('Loyalty.User', new ThinMint.RpcRequest({
   eventName: ThinMint.Event.RPC_LOYALTY_USER,
   method: 'loyalty.user.get'
+}));
+```
+
+#### More complicated example
+```javascript
+ThinMint.RequestMethod.add('Loyalty.User', new ThinMint.RpcRequest({
+  eventName: ThinMint.Event.RPC_LOYALTY_USER,
+  method: 'loyalty.user.get',
+  save: {
+    eventName: ThinMint.Event.RPC_LOYALTY_JOIN,
+    method: 'loyalty_join' //'loyalty.user.post'
+  },  
+  destroy: {
+    eventName: ThinMint.Event.RPC_LOYALTY_QUIT,
+    method: 'loyalty_join'
+  }
 }));
 ```
 
@@ -541,6 +581,21 @@ ThinMint.RequestMethod.add('Drupal.TranslationSet', new ThinMint.DrupalRequest({
   method: 'elc_nodeblock',
   args: [node_id]
 }));
+```
+
+### Need to `fetch`, `destroy`, or `save` data within a Panel?
+```javascript
+ThinMint.RequestMethod.get('Loyalty.Transaction').setParams([{
+  page_mode: ThinMint.Constant.TRANSACTION_PAGE_MODE,
+  limit: ThinMint.Constant.TRANSACTION_PER_PAGE,
+  page: this.getPage()
+}]).fetch();
+```
+
+```javascript
+ThinMint.RequestMethod.get('Loyalty.User').save(data, function(err, res) {
+  // The save event is fired for this and will be captured by this.setLoyaltyJoin
+}); 
 ```
 
 <a name="logging"></a>
