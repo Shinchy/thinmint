@@ -14,6 +14,7 @@ uglifyjs --comments --beautify "indent-level=2,bracketize=true" --lint --output 
   src/lib/drupal_request.js \
   src/panel/panel.js \
   src/mixin/mixin.js \
-  src/mixin/eventemitter.js
+  src/mixin/eventemitter.js \
+  src/mixin/paginate.js
 
 uglifyjs --comments --compress "sequences=true,properties=true,conditionals=true,comparisons=true,booleans=true,loops=true,hoist_funs=true,if_return=true,join_vars=true,cascade=true" --output "dist/thinmint.min.js" "dist/thinmint.js"

@@ -1,4 +1,4 @@
-# ThinMint v0.0.11
+# ThinMint v0.0.12
 
 * [Views / Templates](#views-templates)
 * [Layout](#views-templates)
@@ -439,12 +439,12 @@ Here's an example on how to clear panels when the page is changed.  This overrid
 
 ```javascript
 // Remove and destruct existing panels on page changes.
-(function(super) {
+(function(_super) {
   ThinMint.Router.check = function() {
     ThinMint.Page.Panel.clear();
-    super.apply(ThinMint.Router, arguments);
+    _super.apply(ThinMint.Router, arguments);
     return this;
-  };  
+  };
 }(ThinMint.Router.check));
 ```
 
